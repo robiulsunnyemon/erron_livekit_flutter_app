@@ -26,6 +26,7 @@ class ActiveUsersView extends GetView<ActiveUsersController> {
             margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
             width: 150,
             child: TextField(
+              onChanged: (val) => controller.search(val),
               decoration: InputDecoration(
                 hintText: 'Search',
                 hintStyle: const TextStyle(color: Colors.grey),
@@ -45,6 +46,31 @@ class ActiveUsersView extends GetView<ActiveUsersController> {
       body: Obx(() {
         if (controller.isLoading.value && controller.activeUsers.isEmpty && controller.conversations.isEmpty) {
           return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
+        }
+
+        if (controller.searchResults.isNotEmpty) {
+          return ListView.builder(
+            itemCount: controller.searchResults.length,
+            itemBuilder: (context, index) {
+              final user = controller.searchResults[index];
+              return ListTile(
+                onTap: () => controller.startChat(user),
+                leading: CircleAvatar(
+                  backgroundImage: user.profileImage != null && user.profileImage!.isNotEmpty
+                      ? NetworkImage(AuthService.getFullUrl(user.profileImage))
+                      : null,
+                  child: user.profileImage == null || user.profileImage!.isEmpty
+                      ? const Icon(Icons.person)
+                      : null,
+                ),
+                title: Text(user.fullName),
+                subtitle: Text(user.email, style: const TextStyle(color: Colors.grey)),
+                trailing: user.isOnline 
+                  ? Container(width: 10, height: 10, decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle))
+                  : null,
+              );
+            },
+          );
         }
 
         return RefreshIndicator(

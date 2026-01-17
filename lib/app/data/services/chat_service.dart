@@ -108,6 +108,31 @@ class ChatService {
     }
   }
 
+  Future<List<UserModel>> searchUsers(String query) async {
+    final token = AuthService.to.token;
+    if (token == null) return [];
+
+    try {
+      final url = Uri.parse("$_baseUrl/users/search?query=$query");
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'accept': 'application/json'
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((e) => UserModel.fromJson(e)).toList();
+      }
+      return [];
+    } catch (e) {
+      print("Error searching users: $e");
+      return [];
+    }
+  }
+
   Future<void> markAsRead(String senderId) async {
     final token = AuthService.to.token;
     if (token == null) return;

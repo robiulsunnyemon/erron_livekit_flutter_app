@@ -12,7 +12,11 @@ class ActiveUsersController extends GetxController {
   
   final activeUsers = <UserModel>[].obs;
   final conversations = <Conversation>[].obs;
+  final searchResults = <UserModel>[].obs;
   final isLoading = false.obs;
+  final isSearching = false.obs;
+  
+  Timer? _searchDebounce;
 
   StreamSubscription? _messageSubscription;
 
@@ -22,6 +26,25 @@ class ActiveUsersController extends GetxController {
     _socketService.connect();
     fetchAllData();
     _listenForUpdates();
+  }
+
+  void search(String query) {
+    if (query.trim().isEmpty) {
+      isSearching.value = false;
+      searchResults.clear();
+      return;
+    }
+
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 500), () async {
+      isSearching.value = true;
+      try {
+        final results = await _chatService.searchUsers(query);
+        searchResults.assignAll(results);
+      } finally {
+        isSearching.value = false;
+      }
+    });
   }
 
   void _listenForUpdates() {
