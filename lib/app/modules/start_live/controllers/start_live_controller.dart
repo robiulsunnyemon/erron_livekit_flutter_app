@@ -10,14 +10,15 @@ class StartLiveController extends GetxController {
   final isPremium = false.obs;
   final TextEditingController entryFeeController = TextEditingController(text: "0");
   final TextEditingController titleController = TextEditingController();
-  final selectedCategory = "Entertainment".obs;
+  final selectedCategory = "Just fun".obs;
   
   final List<String> categories = [
-    "Entertainment",
-    "Gaming",
-    "Music",
-    "Talk Show",
-    "Education",
+    "Just fun",
+    "Fitness",
+    "Health",
+    "Fashion",
+    "Cultural",
+    "Travels",
   ];
 
   final isLoading = false.obs;

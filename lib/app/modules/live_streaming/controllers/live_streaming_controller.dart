@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -6,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/streaming_service.dart';
+import '../views/stream_review_dialog.dart';
 
 class LiveStreamingController extends GetxController {
   final StreamingService _streamingService = StreamingService();
@@ -14,6 +16,9 @@ class LiveStreamingController extends GetxController {
   late final EventsListener<RoomEvent> listener;
   
   final isConnected = false.obs;
+  final errorMessage = "".obs;
+  final isMicEnabled = true.obs;
+  final isCameraEnabled = true.obs;
   final localVideoTrack = Rxn<LocalVideoTrack>();
   final remoteVideoTracks = <VideoTrack>[].obs;
   
@@ -46,7 +51,8 @@ class LiveStreamingController extends GetxController {
     super.onInit();
     final args = Get.arguments;
     if (args != null) {
-      token = args['token'] ?? "";
+      print("LiveStreaming Args: $args");
+      token = (args['token'] ?? "").toString().trim();
       roomName = args['room_name'] ?? "";
       isHost = args['is_host'] ?? false;
       sessionId = args['session_id'] ?? ""; 
@@ -75,6 +81,10 @@ class LiveStreamingController extends GetxController {
       
       // 1. Set up listeners BEFORE connecting
       _setUpListeners();
+
+      if (token.isEmpty) {
+        throw Exception("LiveKit Token is empty");
+      }
 
       print("Connecting to LiveKit: $_liveKitUrl");
       await room!.connect(_liveKitUrl, token);
@@ -105,6 +115,7 @@ class LiveStreamingController extends GetxController {
       }
     } catch (e) {
       print("Failed to connect: $e");
+      errorMessage.value = "Failed to connect: $e";
       Get.snackbar("Error", "Failed to connect to room: $e");
     }
   }
@@ -115,6 +126,7 @@ class LiveStreamingController extends GetxController {
        print("Track Subscribed: ${event.track.sid} from ${event.participant.identity}");
        if (event.track is VideoTrack) {
          if (!remoteVideoTracks.contains(event.track)) {
+           print("Adding remote video track from ${event.participant.identity}");
            remoteVideoTracks.add(event.track as VideoTrack);
          }
        }
@@ -133,6 +145,20 @@ class LiveStreamingController extends GetxController {
 
     listener.on<ParticipantDisconnectedEvent>((event) {
       print("Participant Disconnected: ${event.participant.identity}");
+    });
+
+    // Listen for room disconnection (e.g., host ends stream)
+    listener.on<RoomDisconnectedEvent>((event) {
+      print("Room Disconnected: ${event.reason}");
+      if (!isHost && sessionId.isNotEmpty) {
+          Get.bottomSheet(
+            StreamReviewDialog(controller: this),
+            isScrollControlled: true,
+            barrierColor: Colors.black54,
+          );
+      } else {
+        Get.back();
+      }
     });
 
     // Listen for Data Messages (Chat, Likes, Gifts)
@@ -257,11 +283,19 @@ class LiveStreamingController extends GetxController {
       Get.snackbar("Error", "Failed to send gift: $e");
     }
   }
-
   Future<void> _publishData(String data) async {
     if (room == null) return;
     final bytes = utf8.encode(data);
     await room!.localParticipant?.publishData(bytes);
+  }
+
+  Future<void> reportStream(String category, String description) async {
+    if (sessionId.isEmpty) return;
+    try {
+      await _streamingService.reportStream(sessionId, category, description: description);
+    } catch (e) {
+      print("Report Error: $e");
+    }
   }
 
   @override
@@ -276,6 +310,36 @@ class LiveStreamingController extends GetxController {
     if (room != null && room!.localParticipant != null) {
        bool isEnabled = room!.localParticipant!.isMicrophoneEnabled();
        await room!.localParticipant!.setMicrophoneEnabled(!isEnabled);
+       isMicEnabled.value = !isEnabled;
+    }
+  }
+
+  void toggleCamera() async {
+    if (room != null && room!.localParticipant != null) {
+       bool isCurrentlyEnabled = room!.localParticipant!.isCameraEnabled();
+       bool shouldEnable = !isCurrentlyEnabled;
+       
+       await room!.localParticipant!.setCameraEnabled(shouldEnable);
+       isCameraEnabled.value = shouldEnable;
+       
+       if (shouldEnable) {
+         // Give LiveKit a moment to publish/unmute
+         // Then find the video track
+         var track = room!.localParticipant!.videoTrackPublications
+             .firstWhereOrNull((pub) => pub.track is LocalVideoTrack)
+             ?.track as LocalVideoTrack?;
+             
+         if (track != null) {
+            localVideoTrack.value = track;
+         } else {
+             // Fallback: create listener or wait? 
+             // Usually setCameraEnabled returns when done.
+             // Try fetching again after small delay if needed or rely on listener?
+             // Actually, for local, we might need to grab it explicitly if it was newly created.
+         }
+       } else {
+         localVideoTrack.value = null;
+       }
     }
   }
   
@@ -286,12 +350,21 @@ class LiveStreamingController extends GetxController {
         await _streamingService.stopStream(sessionId);
       }
 
-      // Explicitly disconnect from LiveKit
       await room?.disconnect();
       print("Disconnected from LiveKit room");
+      
+      if (!isHost && sessionId.isNotEmpty) {
+        // Show review dialog for viewers
+        Get.bottomSheet(
+          StreamReviewDialog(controller: this),
+          isScrollControlled: true,
+          barrierColor: Colors.black54,
+        );
+      } else {
+        Get.back();
+      }
     } catch (e) {
       print("Error during leaveRoom: $e");
-    } finally {
       Get.back();
     }
   }

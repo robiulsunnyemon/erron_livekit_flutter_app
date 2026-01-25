@@ -1,206 +1,378 @@
+import 'package:erron_live_app/app/data/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../data/services/auth_service.dart';
+import '../../../routes/app_pages.dart';
 import '../controllers/profile_controller.dart';
 
 class ProfileView extends GetView<ProfileController> {
-  const ProfileView({Key? key}) : super(key: key);
+  const ProfileView({super.key});
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F1A),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.redAccent),
-            onPressed: () => controller.logout(),
-          ),
-        ],
-      ),
+      backgroundColor: const Color(0xFF0B0B15), // Dark background
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
+          return const Center(child: CircularProgressIndicator(color: Color(0xFF4C4DDC)));
         }
 
         final user = controller.user.value;
         if (user == null) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("Failed to load profile", style: TextStyle(color: Colors.white)),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => controller.fetchProfile(),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
-                  child: const Text("Retry", style: TextStyle(color: Colors.white)),
-                )
-              ],
-            ),
-          );
+          return Center(child: TextButton(onPressed: controller.fetchProfile, child: const Text("Retry"))); 
         }
+        final shady=user.shady;
+        final double legit=100- shady;
 
         return SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
-              const SizedBox(height: 20),
-              // Profile Image
-              Center(
+              // 1. Cover + Profile Header Stack
+              SizedBox(
+                height: 380, // Approximate height for header section
                 child: Stack(
+                  alignment: Alignment.topCenter,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [Colors.purple, Colors.blue],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                    // Cover Image
+                    GestureDetector(
+                      onTap: () => controller.pickAndUploadImage(false),
+                      child: Container(
+                        height: 220,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: NetworkImage(
+                              user.coverImage != null && user.coverImage!.isNotEmpty
+                               ? user.coverImage! 
+                               : "https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2029&auto=format&fit=crop"
+                            ),
+                            fit: BoxFit.cover,
+                          ),
                         ),
-                      ),
-                      child: CircleAvatar(
-                        radius: 60,
-                        backgroundImage: (user.profileImage != null && user.profileImage!.isNotEmpty) 
-                            ? NetworkImage(user.profileImage!) 
-                            : null,
-                        backgroundColor: Colors.grey[800],
-                        child: (user.profileImage == null || user.profileImage!.isEmpty)
-                            ? const Icon(Icons.person, size: 60, color: Colors.white60)
-                            : null,
-                      ),
-                    ),
-                    if (user.isVerified)
-                      Positioned(
-                        bottom: 5,
-                        right: 5,
                         child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Colors.black.withOpacity(0.1), const Color(0xFF0B0B15)],
+                            ),
                           ),
-                          child: const Icon(Icons.check_circle, color: Colors.blue, size: 24),
+                          child: Align(
+                            alignment: Alignment.topRight,
+                            child: SafeArea(
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 10, right: 60), // Avoid more_vert
+                                child: CircleAvatar(
+                                  backgroundColor: Colors.black45,
+                                  radius: 18,
+                                  child: IconButton(
+                                    icon: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
+                                    onPressed: () => controller.pickAndUploadImage(false),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Name & Bio
-              Text(
-                user.fullName,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                user.email,
-                style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 14),
-              ),
-              if (user.bio != null && user.bio!.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
-                  child: Text(
-                    user.bio!,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 24),
-              // Stats
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withOpacity(0.05)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildStatItem("Followers", user.followersCount.toString()),
-                    _buildDivider(),
-                    _buildStatItem("Following", user.followingCount.toString()),
-                    _buildDivider(),
-                    _buildStatItem("Likes", user.totalLikes.toString()),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              // Wallet / Coins
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
                     ),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.blueAccent.withOpacity(0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    
+                    // Profile Content Card Overlay
+                    Positioned(
+                      top: 150, // Overlap cover
+                      child: Column(
                         children: [
-                          const Text(
-                            "My Wallet",
-                            style: TextStyle(color: Colors.white70, fontSize: 14),
+                          // Profile Stack
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              GestureDetector(
+                                onTap: () => controller.pickAndUploadImage(true),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: const Color(0xFFFF005C), width: 2), // Pink border
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(4.0),
+                                    child: CircleAvatar(
+                                      radius: 60,
+                                      backgroundImage: NetworkImage(
+                                        user.profileImage != null && user.profileImage!.isNotEmpty
+                                            ? user.profileImage!
+                                            : "https://via.placeholder.com/150"
+                                      ),backgroundColor: Colors.grey[800],
+                                      child: (user.profileImage == null || user.profileImage!.isEmpty)
+                                          ? const Icon(Icons.person, size: 60, color: Colors.white60)
+                                          : null,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 5,
+                                right: 5,
+                                child: GestureDetector(
+                                  onTap: () => controller.pickAndUploadImage(true),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF4C4DDC),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
+                                  ),
+                                ),
+                              )
+                            ],
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 12),
                           Text(
-                            "${user.coins.toStringAsFixed(2)} Coins",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
+                            user.fullName,
+                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                          const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Text(
+                              user.bio ?? "No bio available.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
                             ),
                           ),
                         ],
                       ),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.blueAccent,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    ),
+                    
+                    // Top Bar Actions
+                    SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Icon(Icons.arrow_back, color: Colors.white),
+                            const Text("Profile for self", style: TextStyle(color: Colors.white, fontSize: 16)),
+                            const Icon(Icons.more_vert, color: Colors.white),
+                          ],
                         ),
-                        child: const Text("Top Up", style: TextStyle(fontWeight: FontWeight.bold)),
-                      )
-                    ],
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 24),
-              // Menu Items
-              _buildMenuItem(Icons.person_outline, "Edit Profile"),
-              _buildMenuItem(Icons.history, "Live History"),
-              _buildMenuItem(Icons.settings_outlined, "Settings"),
-              _buildMenuItem(Icons.help_outline, "Help Center"),
-              const SizedBox(height: 40),
+
+              // 2. Stats Row
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildStatItem("${user.followersCount}k", "Followers"),
+                    _buildStatItem("${user.followingCount}", "Following"),
+                    _buildStatItem("${user.totalLikes}k", "Likes"),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              // 3. Trust Score Card
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF161621),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text("Trust Score", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        Text("$legit%", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    // Trust Bar
+                    Container(
+                      height: 6,
+                      decoration: BoxDecoration(
+                         color: Colors.grey.withOpacity(0.2),
+                         borderRadius: BorderRadius.circular(3),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: legit.toInt(),
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF00E676),
+                                borderRadius: BorderRadius.horizontal(left: Radius.circular(3)),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: shady.toInt(),
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFFF005C),
+                                borderRadius: BorderRadius.horizontal(right: Radius.circular(3)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("$legit% Legit", style: TextStyle(color: Colors.grey.shade400, fontSize: 10)),
+                        Text("$shady% Suspicious", style: const TextStyle(color: Colors.redAccent, fontSize: 10)),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // 4. Action Buttons
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Get.toNamed(Routes.START_LIVE),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF4C4DDC),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: const Text("Go Live", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: OutlinedButton(
+                         onPressed: () => Get.toNamed(Routes.EDIT_PROFILE), // Edit Profile action
+                         style: OutlinedButton.styleFrom(
+                           side: BorderSide(color: Colors.grey.shade700),
+                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                           padding: const EdgeInsets.symmetric(vertical: 12),
+                         ),
+                         child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // 5. Tabs
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: controller.tabs.map((tab) {
+                    return Obx(() {
+                      final isSelected = controller.selectedTab.value == tab;
+                      return GestureDetector(
+                        onTap: () => controller.selectedTab.value = tab,
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? const Color(0xFF4C4DDC) : const Color(0xFF161621),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: isSelected ? Colors.transparent : Colors.grey.shade800),
+                          ),
+                          child: Text(
+                            tab,
+                            style: TextStyle(
+                              color: isSelected ? Colors.white : Colors.grey.shade400,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, 
+                            ),
+                          ),
+                        ),
+                      );
+                    });
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // 6. Personal Info & Grid Content (Placeholder based on screenshot)
+              Padding(
+                 padding: const EdgeInsets.symmetric(horizontal: 20),
+                 child: Column(
+                   crossAxisAlignment: CrossAxisAlignment.start,
+                   children: [
+                     Row(
+                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                       children: const [
+                         Text("Personal Info", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                         Icon(Icons.edit, color: Colors.grey, size: 18),
+                       ],
+                     ),
+                     const SizedBox(height: 10),
+                     Text("Male", style: TextStyle(color: Colors.grey.shade400)),
+                     Text("21 years old", style: TextStyle(color: Colors.grey.shade400)),
+                     Text(user.country ?? "Unknown Location", style: TextStyle(color: Colors.grey.shade400)),
+                     const SizedBox(height: 20),
+                   ],
+                 ),
+              ),
+
+              // Content based on Tab
+              if (controller.selectedTab.value == "Insights") ...[
+                _buildInsights(context,user),
+              ] else ...[
+                // Grid Content (Past Streams)
+                GridView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.7,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                  ),
+                  itemCount: user.pastStreams.length > 0 ? user.pastStreams.length : 4, // Mock if empty
+                  itemBuilder: (context, index) {
+                     if (user.pastStreams.isEmpty) {
+                       // Placeholder cards if no streams
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF161621),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Center(child: Icon(Icons.image, color: Colors.grey)),
+                        );
+                     }
+                    final stream = user.pastStreams[index];
+                    return Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        image: DecorationImage(
+                          image: NetworkImage(stream.thumbnail ?? "https://via.placeholder.com/300"),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      child: Align(
+                        alignment: Alignment.bottomLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(stream.title ?? "Stream", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+              const SizedBox(height: 20),
             ],
           ),
         );
@@ -208,55 +380,159 @@ class ProfileView extends GetView<ProfileController> {
     );
   }
 
-  Widget _buildStatItem(String label, String value) {
+  Widget _buildInsights(BuildContext context, UserModel user) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader("My Wallet"),
+          const SizedBox(height: 16),
+          // Gradient Wallet Card
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4C4DDC), Color(0xFF8F00FF)], // Purple gradient
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Available Balance", style: TextStyle(color: Colors.white70, fontSize: 14)),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                         Obx(() => Text("${controller.coinBalance.value.toInt()}", style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold))),
+                         const Text("Tokens", style: TextStyle(color: Colors.white60, fontSize: 12)),
+                      ],
+                    ),
+                    Container(height: 40, width: 1, color: Colors.white24),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                         Obx(() => Text("\$${controller.fiatValue.value.toStringAsFixed(2)}", style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold))),
+                         const Text("Tokens", style: TextStyle(color: Colors.white60, fontSize: 12)),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white.withOpacity(0.2),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                        ),
+                        child: const Text("History", style: TextStyle(color: Colors.white)),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (user.kyc?.status=="approved") {
+                            Get.toNamed(Routes.WITHDRAW_TO);
+                          } else {
+                            Get.toNamed(Routes.KYC);
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2962FF),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                        ),
+                        child: const Text("Withdraw", style: TextStyle(color: Colors.white)),
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ),
+          const SizedBox(height: 30),
+          _buildSectionHeader("Buy Tokens"),
+          const SizedBox(height: 16),
+          // Token Packages Grid
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 0.8,
+            children: [
+              _buildTokenCard(100, 0.99),
+              _buildTokenCard(500, 4.99),
+              _buildTokenCard(1200, 9.99),
+              _buildTokenCard(6500, 49.99),
+            ],
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Text(title, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold));
+  }
+
+  Widget _buildTokenCard(int tokens, double price) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF161621),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.amber.withOpacity(0.5)),
+            ),
+            child: const Icon(Icons.token, color: Colors.amber, size: 24),
+          ),
+          const SizedBox(height: 12),
+          Text("$tokens", style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+          const Text("Tokens", style: TextStyle(color: Colors.grey, fontSize: 12)),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4C4DDC), // Blue
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            ),
+            child: Text("\$$price Pay", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String value, String label) {
     return Column(
       children: [
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        Text(value, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12),
-        ),
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
       ],
-    );
-  }
-
-  Widget _buildDivider() {
-    return Container(
-      height: 30,
-      width: 1,
-      color: Colors.white.withOpacity(0.1),
-    );
-  }
-
-  Widget _buildMenuItem(IconData icon, String title) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.white.withOpacity(0.02)),
-      ),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.blueAccent.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: Colors.blueAccent, size: 20),
-        ),
-        title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 16)),
-        trailing: const Icon(Icons.chevron_right, color: Colors.white24),
-        onTap: () {},
-      ),
     );
   }
 }

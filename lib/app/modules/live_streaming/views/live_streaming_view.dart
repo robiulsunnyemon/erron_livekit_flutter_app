@@ -17,6 +17,12 @@ class LiveStreamingView extends GetView<LiveStreamingController> {
           Positioned.fill(
             child: Obx(() {
               if (!controller.isConnected.value) {
+                if (controller.errorMessage.isNotEmpty) {
+                    return Center(child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Text(controller.errorMessage.value, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
+                    ));
+                }
                 return const Center(child: CircularProgressIndicator());
               }
 
@@ -33,10 +39,33 @@ class LiveStreamingView extends GetView<LiveStreamingController> {
               }
 
               if (mainTrack == null) {
-                return const Center(
-                  child: Text(
-                    "Waiting for host...", 
-                    style: TextStyle(color: Colors.white)
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                       // If host, show profile pic or "Camera Off"
+                       // If viewer, show "Waiting for host..."
+                       if (controller.isHost)
+                         Column(
+                           children: [
+                             CircleAvatar(
+                               radius: 50,
+                               backgroundColor: Colors.grey.shade800,
+                               backgroundImage: controller.currentUser.value?.profileImage != null 
+                                 ? NetworkImage(controller.currentUser.value!.profileImage!) 
+                                 : null,
+                               child: const Icon(Icons.videocam_off, size: 40, color: Colors.white),
+                             ),
+                             const SizedBox(height: 10),
+                             const Text("Camera Off", style: TextStyle(color: Colors.white)),
+                           ],
+                         )
+                       else
+                         const Text(
+                          "Waiting for host...", 
+                          style: TextStyle(color: Colors.white)
+                        )
+                    ],
                   )
                 );
               }
@@ -75,7 +104,7 @@ class LiveStreamingView extends GetView<LiveStreamingController> {
                                     const CircleAvatar(
                                       radius: 12, 
                                       backgroundColor: Colors.grey,
-                                      child: Icon(Icons.person, color: Colors.white, size: 16),
+                                      child: Icon(Icons.person, color: Colors.white, size: 16),   //// profile image
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
@@ -84,14 +113,14 @@ class LiveStreamingView extends GetView<LiveStreamingController> {
                                     ),
                                   ],
                                 ),
-                                if (controller.streamCategory.isNotEmpty)
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 32.0),
-                                    child: Text(
-                                      controller.streamCategory,
-                                      style: const TextStyle(color: Colors.white70, fontSize: 10),
-                                    ),
-                                  ),
+                                // if (controller.streamCategory.isNotEmpty)
+                                //   Padding(
+                                //     padding: const EdgeInsets.only(left: 32.0),
+                                //     child: Text(
+                                //       controller.streamCategory,
+                                //       style: const TextStyle(color: Colors.white70, fontSize: 10),
+                                //     ),
+                                //   ),
                               ],
                             ),
                           ),
@@ -137,10 +166,10 @@ class LiveStreamingView extends GetView<LiveStreamingController> {
                                 return Container(
                                   margin: const EdgeInsets.symmetric(vertical: 4),
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black38,
-                                    borderRadius: BorderRadius.circular(8)
-                                  ),
+                                  // decoration: BoxDecoration(
+                                  //   color: Colors.black38,
+                                  //   borderRadius: BorderRadius.circular(8)
+                                  // ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
@@ -249,6 +278,36 @@ class LiveStreamingView extends GetView<LiveStreamingController> {
                               ),
                             ],
                           ),
+
+                          if (controller.isHost) ...[
+                            const SizedBox(height: 10),
+                            Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(30),
+                                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Obx(() => _buildControlBtn(
+                                      icon: controller.isCameraEnabled.value ? Icons.videocam : Icons.videocam_off,
+                                      onTap: controller.toggleCamera,
+                                      isActive: controller.isCameraEnabled.value
+                                    )),
+                                    const SizedBox(width: 20),
+                                    Obx(() => _buildControlBtn(
+                                      icon: controller.isMicEnabled.value ? Icons.mic : Icons.mic_off,
+                                      onTap: controller.toggleMic,
+                                      isActive: controller.isMicEnabled.value
+                                    )),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 16),
                         ],
                       ),
@@ -314,6 +373,20 @@ class LiveStreamingView extends GetView<LiveStreamingController> {
             Text("$price Coins", style: const TextStyle(color: Colors.amber, fontSize: 12)),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildControlBtn({required IconData icon, required VoidCallback onTap, required bool isActive}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: isActive ? Colors.black : Colors.red, size: 24),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import '../models/user_model.dart';
 
 class AuthService extends GetxService {
@@ -91,8 +92,8 @@ class AuthService extends GetxService {
 
   Future<UserModel?> getMyProfile() async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/users/users/my_profile'),
+    final response = await http.get(
+        Uri.parse('$baseUrl/users/my_profile'),
         headers: {
           'Authorization': 'Bearer $token',
         },
@@ -108,5 +109,220 @@ class AuthService extends GetxService {
       print("Profile Exception: $e");
       return null;
     }
+  }
+
+  Future<Map<String, dynamic>?> submitKYC(String frontPath, String backPath) async {
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/users/kyc/submit'));
+      request.headers['Authorization'] = 'Bearer $token';
+      
+      request.files.add(await http.MultipartFile.fromPath('id_front', frontPath));
+      request.files.add(await http.MultipartFile.fromPath('id_back', backPath));
+      
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      if (response.statusCode == 201) {
+        return jsonDecode(response.body);
+      } else {
+        Get.snackbar("KYC Submission Failed", response.body);
+        return null;
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Submission Error: $e");
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getKYCStatus() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/kyc/view'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+  Future<bool> verifyOtp(String email, String otp) async {
+    try {
+      final uri = Uri.parse('$baseUrl/auth/otp-verify');
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'otp': otp,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        // If the response returns user data where is_verified is true, we might want to update local storage if logged in.
+        // But predominantly this is for activation.
+        return true;
+      } else {
+        Get.snackbar("Verification Failed", response.body);
+        return false;
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Something went wrong: $e");
+      return false;
+    }
+  }
+
+  Future<bool> resendOtp(String email) async {
+    try {
+      final uri = Uri.parse('$baseUrl/auth/resend-otp');
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        Get.snackbar("Failed to Resend OTP", response.body);
+        return false;
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Something went wrong: $e");
+      return false;
+    }
+  }
+
+  Future<bool> resetPassword(String email, String newPassword) async {
+    try {
+      final uri = Uri.parse('$baseUrl/auth/reset-password');
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'new_password': newPassword,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        Get.snackbar("Reset Password Failed", response.body);
+        return false;
+      }
+    }
+    catch (e){
+      Get.snackbar("Error", "Something went wrong: $e");
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getWalletStats() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/finance/wallet/stats'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<bool> uploadProfileImage(String filePath) async {
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/users/my_profile/upload-profile-image'));
+      request.headers['Authorization'] = 'Bearer $token';
+      request.files.add(await http.MultipartFile.fromPath(
+        'image', 
+        filePath,
+        contentType: _getMediaType(filePath),
+      ));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        print(response.body);
+        Get.snackbar("Error", "Failed to upload profile image: ${response.body}");
+        return false;
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Upload failed: $e");
+      return false;
+    }
+  }
+
+  Future<bool> uploadCoverImage(String filePath) async {
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/users/my_profile/upload/cover-image'));
+      request.headers['Authorization'] = 'Bearer $token';
+      request.files.add(await http.MultipartFile.fromPath(
+        'image', 
+        filePath,
+        contentType: _getMediaType(filePath),
+      ));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        Get.snackbar("Error", "Failed to upload cover image: ${response.body}");
+        return false;
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Upload failed: $e");
+      return false;
+    }
+  }
+
+  Future<bool> updateProfile(Map<String, dynamic> data) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('$baseUrl/users/my_profile/update'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(data),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        Get.snackbar("Error", "Failed to update profile: ${response.body}");
+        return false;
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Update failed: $e");
+      return false;
+    }
+  }
+
+  MediaType _getMediaType(String filePath) {
+    final ext = filePath.split('.').last.toLowerCase();
+    if (ext == 'png') return MediaType('image', 'png');
+    if (ext == 'webp') return MediaType('image', 'webp');
+    return MediaType('image', 'jpeg');
   }
 }

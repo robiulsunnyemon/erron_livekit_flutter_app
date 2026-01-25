@@ -13,7 +13,8 @@ Future<void> main() async {
   runApp(
     GetMaterialApp(
       title: "Application",
-      initialRoute: AuthService.to.isLoggedIn ? Routes.HOME : Routes.LOGIN,
+      debugShowCheckedModeBanner: false,
+      initialRoute: AuthService.to.isLoggedIn ? Routes.DASHBOARD : Routes.LOGIN,
       getPages: AppPages.routes,
     ),
   );

@@ -10,6 +10,19 @@ abstract class Routes {
   static const PROFILE = _Paths.PROFILE;
   static const CHAT = _Paths.CHAT;
   static const ACTIVE_USERS = _Paths.ACTIVE_USERS;
+  static const KYC = _Paths.KYC;
+  static const REGISTER = _Paths.REGISTER;
+  static const OTP = _Paths.OTP;
+  static const FORGOT_PASSWORD = _Paths.FORGOT_PASSWORD;
+  static const RESET_PASSWORD = _Paths.RESET_PASSWORD;
+  static const EXPLORE = _Paths.EXPLORE;
+  static const DASHBOARD = _Paths.DASHBOARD;
+  static const NOTIFICATION=_Paths.NOTIFICATION;
+  static const WITHDRAW_TO = _Paths.WITHDRAW_TO;
+  static const LINK_ACCOUNT = _Paths.LINK_ACCOUNT;
+  static const WITHDRAW_AMOUNT = _Paths.WITHDRAW_AMOUNT;
+  static const PAYOUT_SUCCESS = _Paths.PAYOUT_SUCCESS;
+  static const EDIT_PROFILE = _Paths.EDIT_PROFILE;
 }
 
 abstract class _Paths {
@@ -21,4 +34,17 @@ abstract class _Paths {
   static const PROFILE = '/profile';
   static const CHAT = '/chat';
   static const ACTIVE_USERS = '/active-users';
+  static const KYC = '/kyc';
+  static const REGISTER = '/register';
+  static const OTP = '/otp';
+  static const FORGOT_PASSWORD = '/forgot-password';
+  static const RESET_PASSWORD = '/reset-password';
+  static const EXPLORE = '/explore';
+  static const DASHBOARD = '/dashboard';
+  static const NOTIFICATION = '/notification';
+  static const WITHDRAW_TO = '/withdraw-to';
+  static const LINK_ACCOUNT = '/link-account';
+  static const WITHDRAW_AMOUNT = '/withdraw-amount';
+  static const PAYOUT_SUCCESS = '/payout-success';
+  static const EDIT_PROFILE = '/edit-profile';
 }

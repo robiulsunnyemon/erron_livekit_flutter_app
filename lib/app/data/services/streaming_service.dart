@@ -12,7 +12,7 @@ class StreamingService {
     String title = "", 
     String category = ""
   }) async {
-    final url = Uri.parse("$_baseUrl/streaming/start-stream");
+    final url = Uri.parse("$_baseUrl/streaming/start");
     final token = AuthService.to.token;
 
     if (token == null) {
@@ -48,7 +48,7 @@ class StreamingService {
   }
 
   Future<Map<String, dynamic>> joinStream(String sessionId) async {
-    final url = Uri.parse("$_baseUrl/streaming/join-stream/$sessionId");
+    final url = Uri.parse("$_baseUrl/streaming/join/$sessionId");
     final token = AuthService.to.token;
 
     if (token == null) {
@@ -139,7 +139,7 @@ class StreamingService {
   }
 
   Future<void> stopStream(String sessionId) async {
-    final url = Uri.parse("$_baseUrl/streaming/stop-stream/$sessionId");
+    final url = Uri.parse("$_baseUrl/streaming/stop/$sessionId");
     final token = AuthService.to.token;
     if (token == null) return;
 
@@ -157,8 +157,31 @@ class StreamingService {
     }
   }
 
+  Future<void> reportStream(String sessionId, String category, {String? description}) async {
+    final token = AuthService.to.token;
+    if (token == null) throw Exception("Authentication Required");
+
+    final url = Uri.parse("$_baseUrl/streaming/interactions/report").replace(queryParameters: {
+      "session_id": sessionId,
+      "category": category,
+      if (description != null) "description": description,
+    });
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Authorization': 'Bearer $token', 'accept': 'application/json'},
+      );
+      if (response.statusCode != 200) {
+        throw Exception("Failed to report: ${response.body}");
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<List<LiveStreamModel>> getAllLiveStreams() async {
-    final url = Uri.parse("$_baseUrl/streaming/active-streams");
+    final url = Uri.parse("$_baseUrl/streaming/active");
     try {
       final response = await http.get(url);
 
@@ -170,6 +193,58 @@ class StreamingService {
       }
     } catch (e) {
       print("Error fetching streams: $e");
+      return [];
+    }
+  }
+
+  Future<List<LiveStreamModel>> getActiveStreamsByCategory(String category) async {
+    final url = Uri.parse("$_baseUrl/streaming/active/$category");
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((e) => LiveStreamModel.fromJson(e)).toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print("Error fetching category streams: $e");
+      return [];
+    }
+  }
+
+  Future<List<LiveStreamModel>> getFreeLiveStreams() async {
+    final url = Uri.parse("$_baseUrl/streaming/active/all/free");
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((e) => LiveStreamModel.fromJson(e)).toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print("Error fetching free streams: $e");
+      return [];
+    }
+  }
+
+  Future<List<LiveStreamModel>> getPremiumLiveStreams() async {
+    // Note: Endpoint has specific path structure provided by user
+    final url = Uri.parse("$_baseUrl/streaming/active/streams/all/premium");
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((e) => LiveStreamModel.fromJson(e)).toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print("Error fetching premium streams: $e");
       return [];
     }
   }

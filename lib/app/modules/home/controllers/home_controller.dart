@@ -7,6 +7,9 @@ class HomeController extends GetxController {
   final StreamingService _streamingService = StreamingService();
   final streams = <LiveStreamModel>[].obs;
   final isLoading = false.obs;
+  
+  final selectedFilter = "All".obs;
+  final filters = ["All", "Free", "Paid"];
 
   @override
   void onInit() {
@@ -14,10 +17,30 @@ class HomeController extends GetxController {
     fetchStreams();
   }
 
+  void onChangeFilter(String filter) {
+    if (selectedFilter.value == filter) return;
+    selectedFilter.value = filter;
+    fetchStreams();
+  }
+
   Future<void> fetchStreams() async {
     isLoading.value = true;
     try {
-      final result = await _streamingService.getAllLiveStreams();
+      List<LiveStreamModel> result;
+      
+      switch (selectedFilter.value) {
+        case "Free":
+           result = await _streamingService.getFreeLiveStreams();
+           break;
+        case "Paid":
+           result = await _streamingService.getPremiumLiveStreams();
+           break;
+        case "All":
+        default:
+           result = await _streamingService.getAllLiveStreams();
+           break;
+      }
+      
       streams.assignAll(result);
     } finally {
       isLoading.value = false;
@@ -27,8 +50,6 @@ class HomeController extends GetxController {
   Future<void> joinStream(LiveStreamModel stream) async {
     if (stream.id == null) return;
     try {
-        // Show loading/snackbar?
-        // Using `startStream` returns token, joinStream also returns token + balance.
         final result = await _streamingService.joinStream(stream.id!);
         
         Get.toNamed('/live-streaming', arguments: {

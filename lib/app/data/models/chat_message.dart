@@ -1,3 +1,24 @@
+class Reaction {
+  final String userId;
+  final String emoji;
+
+  Reaction({required this.userId, required this.emoji});
+
+  factory Reaction.fromJson(Map<String, dynamic> json) {
+    return Reaction(
+      userId: json['user_id']?.toString() ?? "",
+      emoji: json['emoji']?.toString() ?? "",
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'user_id': userId,
+      'emoji': emoji,
+    };
+  }
+}
+
 class ChatMessage {
   final String? id;
   final String senderId;
@@ -5,6 +26,8 @@ class ChatMessage {
   final String? message;
   final String? imageUrl;
   final bool isRead;
+  final String? repliedToId;
+  final List<Reaction> reactions;
   final DateTime createdAt;
 
   ChatMessage({
@@ -14,6 +37,8 @@ class ChatMessage {
     this.message,
     this.imageUrl,
     this.isRead = false,
+    this.repliedToId,
+    this.reactions = const [],
     required this.createdAt,
   });
 
@@ -34,6 +59,11 @@ class ChatMessage {
       message: json['message']?.toString(),
       imageUrl: json['image_url']?.toString(),
       isRead: json['is_read'] == true,
+      repliedToId: json['replied_to_id']?.toString(),
+      reactions: (json['reactions'] as List?)
+              ?.map((e) => Reaction.fromJson(e))
+              .toList() ??
+          [],
       createdAt: json['created_at'] != null 
           ? DateTime.parse(json['created_at']).toLocal() 
           : DateTime.now(),
@@ -46,6 +76,7 @@ class ChatMessage {
       'receiver_id': receiverId,
       'message': message,
       'image_url': imageUrl,
+      'replied_to_id': repliedToId,
     };
   }
 }

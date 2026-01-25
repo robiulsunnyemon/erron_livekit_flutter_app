@@ -1,100 +1,366 @@
 import 'package:flutter/material.dart';
-
 import 'package:get/get.dart';
-
 import '../controllers/start_live_controller.dart';
 
 class StartLiveView extends GetView<StartLiveController> {
-  const StartLiveView({Key? key}) : super(key: key);
+  const StartLiveView({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Start Live'),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Obx(() => Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "Stream Details",
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+      backgroundColor: Colors.black,
+      resizeToAvoidBottomInset: false, // Prevent background from resizing when keyboard opens
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // 1. Background (Camera Placeholder)
+          // In a real app, this would be the CameraPreview widget
+          Image.network(
+            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1964&auto=format&fit=crop", 
+            fit: BoxFit.cover,
+            errorBuilder: (ctx, err, stack) => Container(color: Colors.grey.shade900),
+          ),
+          
+          // Overlay Gradient for readability
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.3),
+                  Colors.transparent,
+                  Colors.black.withOpacity(0.6),
+                  Colors.black.withOpacity(0.9),
+                ],
+                stops: const [0.0, 0.4, 0.7, 1.0],
               ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: controller.titleController,
-                decoration: InputDecoration(
-                  labelText: 'Stream Title',
-                  hintText: 'e.g. My Amazing Live Session',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  prefixIcon: const Icon(Icons.title),
-                ),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: controller.selectedCategory.value,
-                decoration: InputDecoration(
-                  labelText: 'Category',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  prefixIcon: const Icon(Icons.category),
-                ),
-                items: controller.categories.map((String category) {
-                  return DropdownMenuItem<String>(
-                    value: category,
-                    child: Text(category),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  if (val != null) controller.selectedCategory.value = val;
-                },
-              ),
-              const SizedBox(height: 16),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[900],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: SwitchListTile(
-                  title: const Text("Premium Stream", style: TextStyle(color: Colors.white)),
-                  subtitle: const Text("Viewers pay coins to join", style: TextStyle(color: Colors.white70, fontSize: 12)),
-                  value: controller.isPremium.value,
-                  onChanged: (val) => controller.isPremium.value = val,
-                ),
-              ),
-              if (controller.isPremium.value) ...[
-                const SizedBox(height: 16),
-                TextField(
-                  controller: controller.entryFeeController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Entry Fee (Coins)',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    prefixIcon: const Icon(Icons.monetization_on, color: Colors.amber),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 40),
-              controller.isLoading.value
-                  ? const Center(child: CircularProgressIndicator())
-                  : SizedBox(
-                      width: double.infinity,
-                      height: 55,
-                      child: ElevatedButton(
-                      onPressed: controller.startLive,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+            ),
+          ),
+
+          // 2. Top Bar Controls
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Close Button
+                    GestureDetector(
+                      onTap: () => Get.back(),
+                      child: CircleAvatar(
+                        backgroundColor: Colors.redAccent.withOpacity(0.8),
+                        radius: 18,
+                        child: const Icon(Icons.close, color: Colors.white, size: 20),
                       ),
-                      child: const Text('Start Live Stream', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                    )),
-            ],
-          )),
-        ),
+                    ),
+                    
+                    // "Not Live" Tag
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        children: const [
+                          Icon(Icons.circle, color: Colors.pinkAccent, size: 8),
+                          SizedBox(width: 6),
+                          Text("Not Live", style: TextStyle(color: Colors.white, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+
+                    // Camera Switch Button (Placeholder action)
+                    CircleAvatar(
+                      backgroundColor: Colors.black.withOpacity(0.4),
+                      radius: 18,
+                      child: const Icon(Icons.cameraswitch_outlined, color: Colors.white, size: 20),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // 3. Bottom Controls Area
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0B0B15).withOpacity(0.95), // Dark background matching design
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+              child: Obx(() => Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   // Handles/Indicator
+                   Center(
+                     child: Container(
+                       width: 40,
+                       height: 4,
+                       decoration: BoxDecoration(
+                         color: Colors.grey.shade700,
+                         borderRadius: BorderRadius.circular(2),
+                       ),
+                     ),
+                   ),
+                   const SizedBox(height: 24),
+
+                  // Stream Title Input
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade700),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                         const SizedBox(height: 8),
+                         Text("Stream Title", style: TextStyle(color: Colors.grey.shade400, fontSize: 10)),
+                        TextField(
+                          controller: controller.titleController,
+                          style: const TextStyle(color: Colors.white, fontSize: 14),
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            hintText: "What are you streaming today?",
+                            hintStyle: TextStyle(color: Colors.grey),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.only(bottom: 8, top: 4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Category Selector
+                  GestureDetector(
+                    onTap: () {
+                      _showCategoryPicker(context);
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade700),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Column(
+                         crossAxisAlignment: CrossAxisAlignment.start,
+                         children: [
+                           Text("Stream Category", style: TextStyle(color: Colors.grey.shade400, fontSize: 10)),
+                           const SizedBox(height: 4),
+                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(controller.selectedCategory.value, style: const TextStyle(color: Colors.white, fontSize: 14)),
+                              const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+                            ],
+                          ),
+                         ]
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Mode Toggle (Public / Paid Entry)
+                  Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF161621),
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => controller.isPremium.value = false,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              decoration: BoxDecoration(
+                                color: !controller.isPremium.value ? const Color(0xFF4C4DDC) : Colors.transparent, // Blue when selected
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                              child: Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.public, color: !controller.isPremium.value ? Colors.white : Colors.grey, size: 18),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      "Public", 
+                                      style: TextStyle(
+                                        color: !controller.isPremium.value ? Colors.white : Colors.grey,
+                                        fontWeight: FontWeight.bold
+                                      )
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => controller.isPremium.value = true,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              decoration: BoxDecoration(
+                                color: controller.isPremium.value ? const Color(0xFFFFD700) : Colors.transparent, // Gold when selected
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                              child: Center(
+                                child: Row(
+                                   mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.lock_outline, color: controller.isPremium.value ? Colors.black : Colors.grey, size: 18),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      "Paid Entry", 
+                                      style: TextStyle(
+                                        color: controller.isPremium.value ? Colors.black : Colors.grey,
+                                        fontWeight: FontWeight.bold
+                                      )
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Entry Fee Input (Conditional)
+                  if (controller.isPremium.value) ...[
+                    const SizedBox(height: 20),
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade700),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                           const SizedBox(height: 8),
+                           Row(
+                             children: [
+                               Text("Entry Fee", style: TextStyle(color: Colors.grey.shade400, fontSize: 10)),
+                               const Spacer(),
+                             ],
+                           ),
+                           Row(
+                             children: [
+                               const Icon(Icons.diamond_outlined, color: Colors.white, size: 18), // Coin icon
+                               const SizedBox(width: 8),
+                               Expanded(
+                                 child: TextField(
+                                  controller: controller.entryFeeController,
+                                  keyboardType: TextInputType.number,
+                                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                                  decoration: const InputDecoration(
+                                    isDense: true,
+                                    border: InputBorder.none,
+                                    contentPadding: EdgeInsets.only(bottom: 8, top: 4),
+                                  ),
+                                                         ),
+                               ),
+                               Column(
+                                 children: [
+                                    Icon(Icons.keyboard_arrow_up, color: Colors.grey, size: 16),
+                                    Icon(Icons.keyboard_arrow_down, color: Colors.grey, size: 16),
+                                 ]
+                               )
+                             ],
+                           ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "Viewers get a 3-second preview before paying.", 
+                      style: TextStyle(color: Colors.grey, fontSize: 10)
+                    ),
+                  ],
+
+                  const SizedBox(height: 30),
+
+                  // Go Live Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: controller.isLoading.value ? null : controller.startLive,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: controller.isPremium.value ? const Color(0xFFFFD700) : const Color(0xFF4C4DDC),
+                        foregroundColor: controller.isPremium.value ? Colors.black : Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                        elevation: 8,
+                      ),
+                      child: controller.isLoading.value
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text("Go Live", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              )),
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  void _showCategoryPicker(BuildContext context) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Color(0xFF161621),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Select Category", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            Expanded(
+              child: ListView.separated(
+                itemCount: controller.categories.length,
+                separatorBuilder: (_, __) => Divider(color: Colors.grey.shade800),
+                itemBuilder: (context, index) {
+                  final cat = controller.categories[index];
+                  return ListTile(
+                    title: Text(cat, style: const TextStyle(color: Colors.white)),
+                    onTap: () {
+                      controller.selectedCategory.value = cat;
+                      Get.back();
+                    },
+                    trailing: controller.selectedCategory.value == cat ? const Icon(Icons.check, color: Color(0xFF4C4DDC)) : null,
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+      ignoreSafeArea: false,
+    ).then((_) {
+        // Handle closure if needed
+    });
   }
 }

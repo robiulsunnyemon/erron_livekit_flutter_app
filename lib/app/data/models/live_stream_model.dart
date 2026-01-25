@@ -27,11 +27,11 @@ class LiveStreamModel {
 
   factory LiveStreamModel.fromJson(Map<String, dynamic> json) {
     return LiveStreamModel(
-      id: json['_id'], // Beanie/Mongo uses _id
+      id: (json['id'] ?? json['_id']).toString(), // Handle both cases
       channelName: json['channel_name'],
       livekitToken: json['livekit_token'],
       title: json['title'],
-      thumbnail: json['thumbnail'],
+      thumbnail: _getFullUrl(json['thumbnail']),
       category: json['category'],
       isPremium: json['is_premium'] ?? false,
       entryFee: json['entry_fee'] ?? 0,
@@ -39,5 +39,12 @@ class LiveStreamModel {
       totalViews: json['total_views'] ?? 0,
       hostId: json['host'] is Map ? json['host']['_id'] : json['host'], // Handle expansion if possible
     );
+  }
+
+  static String? _getFullUrl(String? path) {
+    if (path == null || path.isEmpty) return path;
+    if (path.startsWith('http')) return path;
+    const base = 'https://erronliveapp.mtscorporate.com';
+    return "$base${path.startsWith('/') ? '' : '/'}$path";
   }
 }
