@@ -37,7 +37,7 @@ class ProfileView extends GetView<ProfileController> {
                   children: [
                     // Cover Image
                     GestureDetector(
-                      onTap: () => controller.pickAndUploadImage(false),
+                     // onTap: () => controller.pickAndUploadImage(false),
                       child: Container(
                         height: 220,
                         width: double.infinity,
@@ -51,31 +51,31 @@ class ProfileView extends GetView<ProfileController> {
                             fit: BoxFit.cover,
                           ),
                         ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Colors.black.withOpacity(0.1), AppColors.background],
-                            ),
-                          ),
-                          child: Align(
-                            alignment: Alignment.topRight,
-                            child: SafeArea(
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 10, right: 60), // Avoid more_vert
-                                child: CircleAvatar(
-                                  backgroundColor: Colors.black45,
-                                  radius: 18,
-                                  child: IconButton(
-                                    icon: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
-                                    onPressed: () => controller.pickAndUploadImage(false),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                        // child: Container(
+                        //   decoration: BoxDecoration(
+                        //     gradient: LinearGradient(
+                        //       begin: Alignment.topCenter,
+                        //       end: Alignment.bottomCenter,
+                        //       colors: [Colors.black.withOpacity(0.1), AppColors.background],
+                        //     ),
+                        //   ),
+                        //   child: Align(
+                        //     alignment: Alignment.topRight,
+                        //     child: SafeArea(
+                        //       child: Padding(
+                        //         padding: const EdgeInsets.only(top: 10, right: 60), // Avoid more_vert
+                        //         child: CircleAvatar(
+                        //           backgroundColor: Colors.black45,
+                        //           radius: 18,
+                        //           child: IconButton(
+                        //             icon: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
+                        //             onPressed: () => controller.pickAndUploadImage(false),
+                        //           ),
+                        //         ),
+                        //       ),
+                        //     ),
+                        //   ),
+                        // ),
                       ),
                     ),
                     
@@ -89,43 +89,40 @@ class ProfileView extends GetView<ProfileController> {
                             alignment: Alignment.center,
                             children: [
                               GestureDetector(
-                                onTap: () => controller.pickAndUploadImage(true),
+                             //   onTap: () => controller.pickAndUploadImage(true),
                                 child: Container(
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(color: AppColors.accent, width: 2), // Pink border
                                   ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(4.0),
-                                    child: CircleAvatar(
-                                      radius: 60,
-                                      backgroundImage: NetworkImage(
-                                        user.profileImage != null && user.profileImage!.isNotEmpty
-                                            ? user.profileImage!
-                                            : "https://via.placeholder.com/150"
-                                      ),backgroundColor: Colors.grey[800],
-                                      child: (user.profileImage == null || user.profileImage!.isEmpty)
-                                          ? const Icon(Icons.person, size: 60, color: Colors.white60)
-                                          : null,
-                                    ),
+                                  child: CircleAvatar(
+                                    radius: 60,
+                                    backgroundImage: NetworkImage(
+                                      user.profileImage != null && user.profileImage!.isNotEmpty
+                                          ? user.profileImage!
+                                          : "https://via.placeholder.com/150"
+                                    ),backgroundColor: Colors.grey[800],
+                                    child: (user.profileImage == null || user.profileImage!.isEmpty)
+                                        ? const Icon(Icons.person, size: 60, color: Colors.white60)
+                                        : null,
                                   ),
                                 ),
                               ),
-                              Positioned(
-                                bottom: 5,
-                                right: 5,
-                                child: GestureDetector(
-                                  onTap: () => controller.pickAndUploadImage(true),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: const BoxDecoration(
-                                      color: AppColors.primary,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
-                                  ),
-                                ),
-                              )
+                              // Positioned(
+                              //   bottom: 5,
+                              //   right: 5,
+                              //   child: GestureDetector(
+                              //     onTap: () => controller.pickAndUploadImage(true),
+                              //     child: Container(
+                              //       padding: const EdgeInsets.all(6),
+                              //       decoration: const BoxDecoration(
+                              //         color: AppColors.primary,
+                              //         shape: BoxShape.circle,
+                              //       ),
+                              //       child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
+                              //     ),
+                              //   ),
+                              // )
                             ],
                           ),
                           const SizedBox(height: 12),
@@ -154,8 +151,6 @@ class ProfileView extends GetView<ProfileController> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Icon(Icons.arrow_back, color: Colors.white),
-                            const Text("Profile for self", style: TextStyle(color: Colors.white, fontSize: 16)),
-                            const Icon(Icons.more_vert, color: Colors.white),
                           ],
                         ),
                       ),
@@ -170,9 +165,9 @@ class ProfileView extends GetView<ProfileController> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildStatItem("${user.followersCount}k", "Followers"),
+                    _buildStatItem("${user.followersCount}", "Followers"),
                     _buildStatItem("${user.followingCount}", "Following"),
-                    _buildStatItem("${user.totalLikes}k", "Likes"),
+                    _buildStatItem("${user.totalLikes}", "Likes"),
                   ],
                 ),
               ),
