@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/services/auth_service.dart';
@@ -220,6 +221,17 @@ class HomeView extends GetView<HomeController> {
         ),
         child: Stack(
           children: [
+            // Guest Blur Layer
+            if (!AuthService.to.isLoggedIn)
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                    child: Container(color: Colors.transparent),
+                  ),
+                ),
+              ),
             // Dark Gradient Overlay
             Container(
               decoration: BoxDecoration(

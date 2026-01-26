@@ -51,18 +51,17 @@ class StreamingService {
     final url = Uri.parse("$_baseUrl/streaming/join/$sessionId");
     final token = AuthService.to.token;
 
-    if (token == null) {
-      throw Exception("Authentication Required");
-    }
-
     try {
       final response = await http.post(
         url,
         headers: {
-          'Authorization': 'Bearer $token',
+          if (token != null) 'Authorization': 'Bearer $token',
           'accept': 'application/json'
         },
       );
+
+      print(response.statusCode);
+      print(response.body);
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
@@ -71,6 +70,7 @@ class StreamingService {
              final err = jsonDecode(response.body);
              throw Exception(err['detail'] ?? "Failed to join stream");
          } catch(_) {
+
              throw Exception("Failed to join stream: ${response.statusCode}");
          }
       }

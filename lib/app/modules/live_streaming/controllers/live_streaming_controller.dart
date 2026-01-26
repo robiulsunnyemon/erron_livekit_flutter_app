@@ -7,6 +7,7 @@ import '../../../data/models/user_model.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/streaming_service.dart';
 import '../../../data/services/social_service.dart';
+import '../../../routes/app_pages.dart';
 import '../views/stream_review_dialog.dart';
 
 class LiveStreamingController extends GetxController {
@@ -92,6 +93,7 @@ class LiveStreamingController extends GetxController {
   }
 
   void _fetchCurrentUser() async {
+    if (!AuthService.to.isLoggedIn) return;
     try {
       final user = await AuthService.to.getMyProfile();
       if (user != null) {
@@ -519,6 +521,12 @@ class LiveStreamingController extends GetxController {
       await room?.disconnect();
       print("Disconnected from LiveKit room");
       
+      if (!AuthService.to.isLoggedIn) {
+        // If guest, go back to home dashboard immediately
+        Get.offAllNamed(Routes.DASHBOARD);
+        return;
+      }
+
       if (!isHost && sessionId.isNotEmpty) {
         // If it's a premium stream and hasn't been paid for, skip the review dialog
         if (isPremium.value && !hasPaid.value) {
@@ -537,7 +545,11 @@ class LiveStreamingController extends GetxController {
       }
     } catch (e) {
       print("Error during leaveRoom: $e");
-      Get.back();
+      if (!AuthService.to.isLoggedIn) {
+        Get.offAllNamed(Routes.DASHBOARD);
+      } else {
+        Get.back();
+      }
     }
   }
 }
