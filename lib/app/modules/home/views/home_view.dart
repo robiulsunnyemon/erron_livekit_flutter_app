@@ -81,7 +81,11 @@ class HomeView extends GetView<HomeController> {
                           }),
                           const SizedBox(width: 12),
                           _buildIconButton(Icons.notifications_outlined, () {
-                            Get.toNamed(Routes.NOTIFICATION);
+                            if (AuthService.to.isLoggedIn) {
+                              Get.toNamed(Routes.NOTIFICATION);
+                            } else {
+                              Get.toNamed(Routes.LOGIN);
+                            }
                           }),
                         ],
                       )

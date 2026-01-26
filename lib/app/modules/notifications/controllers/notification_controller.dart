@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import '../../../data/models/notification_model.dart';
+import '../../../data/services/auth_service.dart';
 import '../../../data/services/notification_service.dart';
+import '../../../routes/app_pages.dart';
 
 class NotificationController extends GetxController {
   final NotificationService _service = NotificationService();
@@ -12,6 +14,10 @@ class NotificationController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    if (!AuthService.to.isLoggedIn) {
+      Get.offNamed(Routes.LOGIN);
+      return;
+    }
     fetchNotifications();
   }
 

@@ -9,7 +9,7 @@ class AppColors {
   static const Color surface = Color(0xFF161621);
   
   // Brand Colors
-  static const Color primary = Color(0xFF4C4DDC); // Blurple
+  static const Color primary = Color(0xFF2E3FE7); // Blurple
   static const Color secondaryPrimary = Color(0xFF2E3FE7); // Vibrant Blue
   static const Color tertiary = Color(0xFFDD2C91);
   static const Color secondaryTertiary = Color(0xFFDDD12C);
