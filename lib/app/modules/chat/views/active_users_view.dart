@@ -4,6 +4,7 @@ import '../../../data/services/auth_service.dart';
 import '../controllers/active_users_controller.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/models/conversation_model.dart';
+import '../../../core/theme/app_colors.dart';
 
 class ActiveUsersView extends GetView<ActiveUsersController> {
   const ActiveUsersView({super.key});
@@ -11,7 +12,7 @@ class ActiveUsersView extends GetView<ActiveUsersController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0B15),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -35,7 +36,7 @@ class ActiveUsersView extends GetView<ActiveUsersController> {
                 hintStyle: const TextStyle(color: Colors.grey),
                 prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
                 filled: true,
-                fillColor: const Color(0xFF161621),
+                fillColor: AppColors.surface,
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25),
@@ -48,7 +49,7 @@ class ActiveUsersView extends GetView<ActiveUsersController> {
       ),
       body: Obx(() {
         if (controller.isLoading.value && controller.activeUsers.isEmpty && controller.conversations.isEmpty) {
-          return const Center(child: CircularProgressIndicator(color: Color(0xFF4C4DDC)));
+          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
         }
 
         if (controller.searchResults.isNotEmpty) {
@@ -71,8 +72,8 @@ class ActiveUsersView extends GetView<ActiveUsersController> {
 
         return RefreshIndicator(
           onRefresh: controller.fetchAllData,
-          color: const Color(0xFF4C4DDC),
-          backgroundColor: const Color(0xFF161621),
+          color: AppColors.primary,
+          backgroundColor: AppColors.surface,
           child: CustomScrollView(
             slivers: [
               // Active Users Horizontal List
@@ -83,8 +84,11 @@ class ActiveUsersView extends GetView<ActiveUsersController> {
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    itemCount: controller.activeUsers.length,
+                    itemCount: controller.activeUsers.isEmpty ? (controller.currentUser.value != null ? 1 : 0) : controller.activeUsers.length,
                     itemBuilder: (context, index) {
+                      if (controller.activeUsers.isEmpty) {
+                        return _buildActiveUserAvatar(controller.currentUser.value!, isSelf: true);
+                      }
                       final user = controller.activeUsers[index];
                       return _buildActiveUserAvatar(user);
                     },
@@ -130,9 +134,9 @@ class ActiveUsersView extends GetView<ActiveUsersController> {
     );
   }
 
-  Widget _buildActiveUserAvatar(UserModel user) {
+  Widget _buildActiveUserAvatar(UserModel user, {bool isSelf = false}) {
     return GestureDetector(
-      onTap: () => controller.startChat(user),
+      onTap: isSelf ? null : () => controller.startChat(user),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8),
         child: Column(
@@ -143,7 +147,7 @@ class ActiveUsersView extends GetView<ActiveUsersController> {
                   padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFFFF005C), width: 2), // Pink ring
+                    border: Border.all(color: AppColors.accent, width: 2), // Pink ring
                   ),
                   child: CircleAvatar(
                     radius: 32,
@@ -163,13 +167,18 @@ class ActiveUsersView extends GetView<ActiveUsersController> {
                     width: 14,
                     height: 14,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2ECC71),
+                      color: AppColors.success,
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF0B0B15), width: 2),
+                      border: Border.all(color: AppColors.background, width: 2),
                     ),
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              isSelf ? "You" : (user.firstName ?? "User"),
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
           ],
         ),
@@ -203,9 +212,9 @@ class ActiveUsersView extends GetView<ActiveUsersController> {
                 width: 12,
                 height: 12,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2ECC71),
+                  color: AppColors.success,
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF0B0B15), width: 2),
+                  border: Border.all(color: AppColors.background, width: 2),
                 ),
               ),
             ),
@@ -243,7 +252,7 @@ class ActiveUsersView extends GetView<ActiveUsersController> {
               height: 20,
               alignment: Alignment.center,
               decoration: const BoxDecoration(
-                color: Color(0xFFFF005C),
+                color: AppColors.accent,
                 shape: BoxShape.circle,
               ),
               child: Text(

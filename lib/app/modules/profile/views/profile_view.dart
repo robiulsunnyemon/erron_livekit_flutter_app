@@ -1,9 +1,11 @@
 import 'package:erron_live_app/app/data/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get/get_connect/http/src/utils/utils.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../routes/app_pages.dart';
 import '../controllers/profile_controller.dart';
+import '../../../core/theme/app_colors.dart';
 
 class ProfileView extends GetView<ProfileController> {
   const ProfileView({super.key});
@@ -11,10 +13,10 @@ class ProfileView extends GetView<ProfileController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0B15), // Dark background
+      backgroundColor: AppColors.background, // Dark background
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator(color: Color(0xFF4C4DDC)));
+          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
         }
 
         final user = controller.user.value;
@@ -54,7 +56,7 @@ class ProfileView extends GetView<ProfileController> {
                             gradient: LinearGradient(
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
-                              colors: [Colors.black.withOpacity(0.1), const Color(0xFF0B0B15)],
+                              colors: [Colors.black.withOpacity(0.1), AppColors.background],
                             ),
                           ),
                           child: Align(
@@ -91,7 +93,7 @@ class ProfileView extends GetView<ProfileController> {
                                 child: Container(
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: const Color(0xFFFF005C), width: 2), // Pink border
+                                    border: Border.all(color: AppColors.accent, width: 2), // Pink border
                                   ),
                                   child: Padding(
                                     padding: const EdgeInsets.all(4.0),
@@ -117,7 +119,7 @@ class ProfileView extends GetView<ProfileController> {
                                   child: Container(
                                     padding: const EdgeInsets.all(6),
                                     decoration: const BoxDecoration(
-                                      color: Color(0xFF4C4DDC),
+                                      color: AppColors.primary,
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
@@ -180,7 +182,7 @@ class ProfileView extends GetView<ProfileController> {
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF161621),
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -207,7 +209,7 @@ class ProfileView extends GetView<ProfileController> {
                             flex: legit.toInt(),
                             child: Container(
                               decoration: const BoxDecoration(
-                                color: Color(0xFF00E676),
+                                color: AppColors.vibrantSuccess,
                                 borderRadius: BorderRadius.horizontal(left: Radius.circular(3)),
                               ),
                             ),
@@ -216,7 +218,7 @@ class ProfileView extends GetView<ProfileController> {
                             flex: shady.toInt(),
                             child: Container(
                               decoration: const BoxDecoration(
-                                color: Color(0xFFFF005C),
+                                color: AppColors.accent,
                                 borderRadius: BorderRadius.horizontal(right: Radius.circular(3)),
                               ),
                             ),
@@ -246,7 +248,7 @@ class ProfileView extends GetView<ProfileController> {
                       child: ElevatedButton(
                         onPressed: () => Get.toNamed(Routes.START_LIVE),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4C4DDC),
+                          backgroundColor: AppColors.secondaryPrimary,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
@@ -284,7 +286,7 @@ class ProfileView extends GetView<ProfileController> {
                           margin: const EdgeInsets.only(right: 10),
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                           decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFF4C4DDC) : const Color(0xFF161621),
+                            color: isSelected ? AppColors.secondaryPrimary : AppColors.surface,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(color: isSelected ? Colors.transparent : Colors.grey.shade800),
                           ),
@@ -311,9 +313,12 @@ class ProfileView extends GetView<ProfileController> {
                    children: [
                      Row(
                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                       children: const [
-                         Text("Personal Info", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                         Icon(Icons.edit, color: Colors.grey, size: 18),
+                       children: [
+                         const Text("Personal Info", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                          GestureDetector(
+                              onTap: () => Get.toNamed(Routes.EDIT_PROFILE),
+                              child: Icon(Icons.edit, color: Colors.grey, size: 18)),
+
                        ],
                      ),
                      const SizedBox(height: 10),
@@ -330,7 +335,8 @@ class ProfileView extends GetView<ProfileController> {
                 _buildInsights(context,user),
               ] else ...[
                 // Grid Content (Past Streams)
-                GridView.builder(
+                if(user.pastStreams.isNotEmpty)
+                  GridView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
@@ -340,7 +346,7 @@ class ProfileView extends GetView<ProfileController> {
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),
-                  itemCount: user.pastStreams.length > 0 ? user.pastStreams.length : 4, // Mock if empty
+                  itemCount: user.pastStreams.isNotEmpty ? user.pastStreams.length : 0, // Mock if empty
                   itemBuilder: (context, index) {
                      if (user.pastStreams.isEmpty) {
                        // Placeholder cards if no streams
@@ -371,6 +377,9 @@ class ProfileView extends GetView<ProfileController> {
                     );
                   },
                 ),
+                if(user.pastStreams.isEmpty)
+                  const Text("You have not past stream",style: TextStyle(color: Colors.white),),
+                
               ],
               const SizedBox(height: 20),
             ],
@@ -394,7 +403,7 @@ class ProfileView extends GetView<ProfileController> {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF4C4DDC), Color(0xFF8F00FF)], // Purple gradient
+                colors: [AppColors.secondaryPrimary, AppColors.purple], // Purple gradient
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -430,7 +439,7 @@ class ProfileView extends GetView<ProfileController> {
                   children: [
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () => Get.toNamed(Routes.PAYMENT_HISTORY),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white.withOpacity(0.2),
                           elevation: 0,
@@ -450,7 +459,7 @@ class ProfileView extends GetView<ProfileController> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2962FF),
+                          backgroundColor: AppColors.secondaryPrimary,
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
                         ),
@@ -493,7 +502,7 @@ class ProfileView extends GetView<ProfileController> {
   Widget _buildTokenCard(int tokens, double price) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF161621),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.grey.withOpacity(0.1)),
       ),
@@ -515,7 +524,7 @@ class ProfileView extends GetView<ProfileController> {
           ElevatedButton(
             onPressed: () {},
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4C4DDC), // Blue
+              backgroundColor: AppColors.secondaryPrimary, // Blue
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             ),

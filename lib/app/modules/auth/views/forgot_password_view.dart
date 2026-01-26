@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
 import '../../../routes/app_pages.dart';
+import '../../../core/theme/app_colors.dart';
 
 class ForgotPasswordView extends GetView<AuthController> {
   const ForgotPasswordView({Key? key}) : super(key: key);
@@ -9,13 +10,16 @@ class ForgotPasswordView extends GetView<AuthController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: AppColors.altBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            FocusManager.instance.primaryFocus?.unfocus();
+            Get.back();
+          },
         ),
       ),
       body: Padding(
@@ -48,7 +52,7 @@ class ForgotPasswordView extends GetView<AuthController> {
                     hintText: "you@example.com",
                     hintStyle: TextStyle(color: Colors.grey.shade600),
                     filled: true,
-                    fillColor: const Color(0xFF0F0F1E),
+                    fillColor: AppColors.fieldBackground,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -69,7 +73,10 @@ class ForgotPasswordView extends GetView<AuthController> {
              Align(
                alignment: Alignment.centerRight,
                child: GestureDetector(
-                 onTap: () => Get.offNamed(Routes.LOGIN),
+                 onTap: () {
+                   FocusManager.instance.primaryFocus?.unfocus();
+                   Get.offNamed(Routes.LOGIN);
+                 },
                  child: const Text("Back to sign in", style: TextStyle(color: Colors.white70, fontSize: 12)),
                ),
              ),
@@ -82,11 +89,11 @@ class ForgotPasswordView extends GetView<AuthController> {
               child: ElevatedButton(
                 onPressed: controller.isLoading.value ? null : controller.forgotPassword,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4C4DDC),
+                  backgroundColor: AppColors.secondaryPrimary,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
                   elevation: 8,
-                  shadowColor: const Color(0xFF4C4DDC).withOpacity(0.5),
+                  shadowColor: AppColors.primary.withOpacity(0.5),
                 ),
                 child: controller.isLoading.value
                     ? const CircularProgressIndicator(color: Colors.white)

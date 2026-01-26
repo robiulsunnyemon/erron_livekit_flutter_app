@@ -2,18 +2,19 @@ import 'package:erron_live_app/app/modules/chat/views/active_users_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/dashboard_controller.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../home/views/home_view.dart';
 import '../../explore/views/explore_view.dart';
 import '../../chat/views/chat_view.dart';
 import '../../profile/views/profile_view.dart';
 
 class DashboardView extends GetView<DashboardController> {
-  const DashboardView({Key? key}) : super(key: key);
+  const DashboardView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0B15),
+      backgroundColor: AppColors.background,
       body: Obx(() => IndexedStack(
         index: controller.currentIndex.value,
         children: [
@@ -53,7 +54,7 @@ class DashboardView extends GetView<DashboardController> {
         padding: const EdgeInsets.all(12),
         decoration: isSelected 
           ? BoxDecoration(
-              color: const Color(0xFF4C4DDC),
+              color:AppColors.secondaryPrimary,
               borderRadius: BorderRadius.circular(16),
             )
           : null,
@@ -74,14 +75,8 @@ class DashboardView extends GetView<DashboardController> {
         height: 48,
          decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              colors: [Color(0xFF4C4DDC), Color(0xFF6C63FF)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF4C4DDC).withOpacity(0.4),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               )

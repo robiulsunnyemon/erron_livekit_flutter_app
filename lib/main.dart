@@ -16,6 +16,8 @@ Future<void> main() async {
       debugShowCheckedModeBanner: false,
       initialRoute: AuthService.to.isLoggedIn ? Routes.DASHBOARD : Routes.LOGIN,
       getPages: AppPages.routes,
+      defaultTransition: Transition.cupertino,
+      transitionDuration: const Duration(milliseconds: 400),
     ),
   );
 }

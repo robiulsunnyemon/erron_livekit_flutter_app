@@ -2,20 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
 import '../../../routes/app_pages.dart';
+import '../../../core/theme/app_colors.dart';
 
 class RegisterView extends GetView<AuthController> {
-  const RegisterView({Key? key}) : super(key: key);
+  const RegisterView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E), // Dark background
+      backgroundColor: AppColors.altBackground, // Dark background
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            FocusManager.instance.primaryFocus?.unfocus();
+            Get.back();
+          },
         ),
       ),
       body: SingleChildScrollView(
@@ -144,7 +148,10 @@ class RegisterView extends GetView<AuthController> {
               children: [
                 const Text("Already have an account? ", style: TextStyle(color: Colors.grey)),
                 GestureDetector(
-                  onTap: () => Get.offNamed(Routes.LOGIN),
+                  onTap: () {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    Get.offNamed(Routes.LOGIN);
+                  },
                   child: const Text("Login", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ],
@@ -178,7 +185,7 @@ class RegisterView extends GetView<AuthController> {
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey.shade600),
             filled: true,
-            fillColor: const Color(0xFF0F0F1E), // Slightly darker for input
+            fillColor: AppColors.fieldBackground, // Slightly darker for input
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
@@ -205,11 +212,11 @@ class RegisterView extends GetView<AuthController> {
       child: ElevatedButton(
         onPressed: isLoading.value ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF4C4DDC), // Blurple color
+          backgroundColor: AppColors.primary, // Blurple color
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
           elevation: 8,
-          shadowColor: const Color(0xFF4C4DDC).withOpacity(0.5),
+          shadowColor: AppColors.primary.withOpacity(0.5),
         ),
         child: isLoading.value
             ? const CircularProgressIndicator(color: Colors.white)

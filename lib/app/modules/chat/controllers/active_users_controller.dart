@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:get/get.dart';
 import '../../../data/models/conversation_model.dart';
 import '../../../data/models/user_model.dart';
+import '../../../data/services/auth_service.dart';
 import '../../../data/services/chat_service.dart';
 import '../../../data/services/chat_socket_service.dart';
 import '../../../routes/app_pages.dart';
@@ -15,6 +16,7 @@ class ActiveUsersController extends GetxController {
   final searchResults = <UserModel>[].obs;
   final isLoading = false.obs;
   final isSearching = false.obs;
+  final currentUser = Rxn<UserModel>();
   
   Timer? _searchDebounce;
 
@@ -25,6 +27,7 @@ class ActiveUsersController extends GetxController {
     super.onInit();
     _socketService.connect();
     fetchAllData();
+    fetchCurrentUser();
     _listenForUpdates();
   }
 
@@ -88,6 +91,15 @@ class ActiveUsersController extends GetxController {
     } catch (e) {
       print("Error fetching conversations: $e");
     }
+  }
+
+  Future<void> fetchCurrentUser() async {
+     try {
+       final user = await AuthService.to.getMyProfile();
+       currentUser.value = user;
+     } catch (e) {
+       print("Error fetching current user: $e");
+     }
   }
 
   void startChat(UserModel user) {

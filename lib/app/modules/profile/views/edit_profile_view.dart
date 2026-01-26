@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/edit_profile_controller.dart';
+import '../../../core/theme/app_colors.dart';
 
 class EditProfileView extends GetView<EditProfileController> {
-  const EditProfileView({Key? key}) : super(key: key);
+  const EditProfileView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0B15),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -51,7 +52,7 @@ class EditProfileView extends GetView<EditProfileController> {
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFFFF005C), width: 2),
+                        border: Border.all(color: AppColors.accent, width: 2),
                       ),
                       child: CircleAvatar(
                         radius: 80,
@@ -156,7 +157,7 @@ class EditProfileView extends GetView<EditProfileController> {
                       child: ElevatedButton(
                         onPressed: () => controller.saveProfile(),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2E3FE7),
+                          backgroundColor: AppColors.secondaryPrimary,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
                         ),
                         child: const Text("Save", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
@@ -173,7 +174,7 @@ class EditProfileView extends GetView<EditProfileController> {
   Widget _buildTextArea(TextEditingController ctrl) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF161621),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withOpacity(0.1)),
       ),
@@ -201,7 +202,7 @@ class EditProfileView extends GetView<EditProfileController> {
         ),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF161621),
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.white.withOpacity(0.1)),
           ),
@@ -231,7 +232,7 @@ class EditProfileView extends GetView<EditProfileController> {
           onTap: onTap,
           child: Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF161621),
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.white.withOpacity(0.1)),
             ),

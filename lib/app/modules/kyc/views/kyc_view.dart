@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/kyc_controller.dart';
+import '../../../core/theme/app_colors.dart';
 
 class KYCView extends GetView<KYCController> {
   const KYCView({Key? key}) : super(key: key);
@@ -9,7 +10,7 @@ class KYCView extends GetView<KYCController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F1A),
+      backgroundColor: AppColors.secondaryBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,

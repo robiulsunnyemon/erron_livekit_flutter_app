@@ -4,6 +4,7 @@ import '../../../data/services/auth_service.dart';
 import '../../../routes/app_pages.dart';
 import '../../../data/models/live_stream_model.dart';
 import '../controllers/home_controller.dart';
+import '../../../core/theme/app_colors.dart';
 
 
 class HomeView extends GetView<HomeController> {
@@ -12,40 +13,79 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0B15), // Dark background
+      backgroundColor: AppColors.background, // Dark background
       body: SafeArea(
         child: Column(
           children: [
             // Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              child: Obx(() => controller.isSearching.value 
+                ? Row(
                     children: [
-                       // Using a text approximation of the logo
-                       const Text(
-                         "INSTALIVE", 
-                         style: TextStyle(
-                           color: Color(0xFF4C4DDC), 
-                           fontWeight: FontWeight.bold, 
-                           letterSpacing: 1.2
-                         )
-                       ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      _buildIconButton(Icons.search, () {}),
-                      const SizedBox(width: 12),
-                      _buildIconButton(Icons.notifications_outlined, () {
-                        Get.toNamed(Routes.NOTIFICATION);
-                      }),
+                      Expanded(
+                        child: Container(
+                          height: 40,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.grey.shade800),
+                          ),
+                          child: TextField(
+                            controller: controller.searchController,
+                            autofocus: true,
+                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                            onChanged: (val) => controller.onSearch(val),
+                            decoration: const InputDecoration(
+                              hintText: "Search by name, title, category...",
+                              hintStyle: TextStyle(color: Colors.grey, fontSize: 12),
+                              border: InputBorder.none,
+                              icon: Icon(Icons.search, color: Colors.grey, size: 18),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      TextButton(
+                        onPressed: () {
+                          controller.isSearching.value = false;
+                          controller.searchController.clear();
+                          controller.onSearch("");
+                        },
+                        child: const Text("Cancel", style: TextStyle(color: AppColors.primary)),
+                      )
                     ],
                   )
-                ],
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                           const Text(
+                             "INSTALIVE", 
+                             style: TextStyle(
+                               color: Color(0xFF4C4DDC), 
+                               fontWeight: FontWeight.bold, 
+                               letterSpacing: 1.2
+                             )
+                           ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          _buildIconButton(Icons.search, () {
+                            controller.isSearching.value = true;
+                          }),
+                          const SizedBox(width: 12),
+                          _buildIconButton(Icons.notifications_outlined, () {
+                            Get.toNamed(Routes.NOTIFICATION);
+                          }),
+                        ],
+                      )
+                    ],
+                  )
               ),
             ),
 
@@ -67,7 +107,7 @@ class HomeView extends GetView<HomeController> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                           decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFF4C4DDC) : const Color(0xFF161621),
+                            color: isSelected ? AppColors.secondaryPrimary : AppColors.surface,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                                 color: isSelected ? Colors.transparent : Colors.grey.shade800
@@ -94,7 +134,7 @@ class HomeView extends GetView<HomeController> {
             Expanded(
               child: Obx(() {
                 if (controller.isLoading.value) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFF4C4DDC)));
+                  return const Center(child: CircularProgressIndicator(color: AppColors.primary));
                 }
                 
                 if (controller.streams.isEmpty) {
@@ -139,7 +179,7 @@ class HomeView extends GetView<HomeController> {
       // Keeping it for functionality but styling it.
       floatingActionButton: FloatingActionButton(
         onPressed: () => Get.toNamed(Routes.START_LIVE),
-        backgroundColor: const Color(0xFF4C4DDC),
+        backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -150,7 +190,7 @@ class HomeView extends GetView<HomeController> {
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: const Color(0xFF161621),
+        color: AppColors.surface,
         shape: BoxShape.circle,
         border: Border.all(color: Colors.grey.shade800),
       ),
@@ -163,6 +203,8 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget _buildStreamCard(LiveStreamModel stream) {
+    final shady = stream.host?.shady ?? 0;
+    final legit = 100 - shady;
     return GestureDetector(
       onTap: () => controller.joinStream(stream),
       child: Container(
@@ -222,7 +264,7 @@ class HomeView extends GetView<HomeController> {
                          Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF4C4DDC), // Blurple tag for view count
+                            color: AppColors.primary, // Blurple tag for view count
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
@@ -279,7 +321,9 @@ class HomeView extends GetView<HomeController> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Host Name", // Needs host name in model
+                              "${stream.hostFirstName ?? ''} ${stream.hostLastName ?? ''}".trim().isEmpty 
+                                  ? "Unknown Host" 
+                                  : "${stream.hostFirstName ?? ''} ${stream.hostLastName ?? ''}",
                               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
                             ),
                             Text(
@@ -304,24 +348,32 @@ class HomeView extends GetView<HomeController> {
                     ),
                     child: Row(
                       children: [
-                        Expanded(
-                          flex: 98,
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF00E676), // Green
-                              borderRadius: BorderRadius.horizontal(left: Radius.circular(3)),
+                        if (legit > 0)
+                          Expanded(
+                            flex: legit.toInt(),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: AppColors.vibrantSuccess,
+                                borderRadius: BorderRadius.horizontal(
+                                  left: const Radius.circular(3),
+                                  right: Radius.circular(shady == 0 ? 3 : 0),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                           child: Container(
-                             decoration: const BoxDecoration(
-                              color: Color(0xFFFF005C), // Red
-                              borderRadius: BorderRadius.horizontal(right: Radius.circular(3)),
-                            ),
-                           ),
-                        )
+                        if (shady! > 0)
+                          Expanded(
+                            flex: shady.toInt(),
+                             child: Container(
+                               decoration: BoxDecoration(
+                                color: AppColors.accent,
+                                borderRadius: BorderRadius.horizontal(
+                                  right: const Radius.circular(3),
+                                  left: Radius.circular(legit == 0 ? 3 : 0),
+                                ),
+                              ),
+                             ),
+                          )
                       ],
                     ),
                   ),
@@ -329,8 +381,8 @@ class HomeView extends GetView<HomeController> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Legit: 98%", style: TextStyle(color: Colors.grey.shade400, fontSize: 9)),
-                      Text("Shady: 2%", style: TextStyle(color: Colors.redAccent, fontSize: 9)),
+                      Text("Legit: $legit%", style: TextStyle(color: Colors.grey.shade400, fontSize: 9)),
+                      Text("Shady: $shady%", style: TextStyle(color: Colors.redAccent, fontSize: 9)),
                     ],
                   )
                 ],

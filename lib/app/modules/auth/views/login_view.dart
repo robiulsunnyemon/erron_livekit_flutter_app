@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
 import '../../../routes/app_pages.dart';
+import '../../../core/theme/app_colors.dart';
 
 class LoginView extends GetView<AuthController> {
-  const LoginView({Key? key}) : super(key: key);
+  const LoginView({super.key});
   
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E), // Dark background
+      backgroundColor: AppColors.altBackground, // Dark background
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -65,7 +66,10 @@ class LoginView extends GetView<AuthController> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () => Get.toNamed(Routes.FORGOT_PASSWORD),
+                onPressed: () {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                  Get.toNamed(Routes.FORGOT_PASSWORD);
+                },
                   child: const Text("Forgot Password?", style: TextStyle(color: Colors.grey)),
                 ),
               ),
@@ -77,11 +81,11 @@ class LoginView extends GetView<AuthController> {
                 child: ElevatedButton(
                   onPressed: controller.isLoading.value ? null : controller.login,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4C4DDC),
+                    backgroundColor: AppColors.secondaryPrimary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
                     elevation: 8,
-                    shadowColor: const Color(0xFF4C4DDC).withOpacity(0.5),
+                    shadowColor: AppColors.primary.withOpacity(0.5),
                   ),
                   child: controller.isLoading.value
                       ? const CircularProgressIndicator(color: Colors.white)
@@ -94,7 +98,10 @@ class LoginView extends GetView<AuthController> {
                SizedBox(
                 height: 56,
                 child: OutlinedButton(
-                   onPressed: () => Get.offNamed(Routes.DASHBOARD), // Browse as Guest logic
+                   onPressed: () {
+                     FocusManager.instance.primaryFocus?.unfocus();
+                     Get.offNamed(Routes.DASHBOARD);
+                   }, // Browse as Guest logic
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.white,
                     side: BorderSide(color: Colors.grey.shade700),
@@ -127,7 +134,7 @@ class LoginView extends GetView<AuthController> {
                     side: BorderSide(color: Colors.grey.shade700),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
                     foregroundColor: Colors.white,
-                    backgroundColor: const Color(0xFF161621)
+                    backgroundColor: AppColors.surface
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -147,7 +154,10 @@ class LoginView extends GetView<AuthController> {
                 children: [
                   const Text("Don't have an account? ", style: TextStyle(color: Colors.grey)),
                   GestureDetector(
-                    onTap: () => Get.toNamed(Routes.REGISTER),
+                  onTap: () {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    Get.toNamed(Routes.REGISTER);
+                  },
                     child: const Text("Sign up", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 ],
@@ -182,7 +192,7 @@ class LoginView extends GetView<AuthController> {
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey.shade600),
             filled: true,
-            fillColor: const Color(0xFF0F0F1E), // Slightly darker for input
+            fillColor: AppColors.fieldBackground, // Slightly darker for input
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,

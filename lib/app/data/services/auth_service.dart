@@ -4,6 +4,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import '../models/user_model.dart';
+import '../models/payout_model.dart';
 
 class AuthService extends GetxService {
   static AuthService get to => Get.find();
@@ -213,6 +214,8 @@ class AuthService extends GetxService {
         }),
       );
 
+      print(response.body);
+
       if (response.statusCode == 200) {
         return true;
       } else {
@@ -221,6 +224,7 @@ class AuthService extends GetxService {
       }
     }
     catch (e){
+      print(e);
       Get.snackbar("Error", "Something went wrong: $e");
       return false;
     }
@@ -316,6 +320,28 @@ class AuthService extends GetxService {
     } catch (e) {
       Get.snackbar("Error", "Update failed: $e");
       return false;
+    }
+  }
+
+  Future<List<PayoutRequestModel>> getPayoutHistory() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/finance/payout/history'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List data = jsonDecode(response.body);
+        return data.map((e) => PayoutRequestModel.fromJson(e)).toList();
+      } else {
+        print("Payout History Error: ${response.statusCode} - ${response.body}");
+        return [];
+      }
+    } catch (e) {
+      print("Payout History Exception: $e");
+      return [];
     }
   }
 

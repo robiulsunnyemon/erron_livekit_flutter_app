@@ -24,6 +24,7 @@ abstract class Routes {
   static const PAYOUT_SUCCESS = _Paths.PAYOUT_SUCCESS;
   static const EDIT_PROFILE = _Paths.EDIT_PROFILE;
   static const CALL = _Paths.CALL;
+  static const PAYMENT_HISTORY = _Paths.PAYMENT_HISTORY;
 }
 
 abstract class _Paths {
@@ -49,4 +50,5 @@ abstract class _Paths {
   static const PAYOUT_SUCCESS = '/payout-success';
   static const EDIT_PROFILE = '/edit-profile';
   static const CALL = '/call';
+  static const PAYMENT_HISTORY = '/payment-history';
 }

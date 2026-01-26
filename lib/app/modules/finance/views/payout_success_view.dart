@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../routes/app_pages.dart';
+import '../../../core/theme/app_colors.dart';
 
 class PayoutSuccessView extends StatelessWidget {
   const PayoutSuccessView({Key? key}) : super(key: key);

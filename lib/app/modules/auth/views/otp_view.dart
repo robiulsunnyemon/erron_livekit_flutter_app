@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
+import '../../../core/theme/app_colors.dart';
 
 class OtpView extends GetView<AuthController> {
   const OtpView({Key? key}) : super(key: key);
@@ -12,13 +13,16 @@ class OtpView extends GetView<AuthController> {
     final email = Get.arguments is Map ? Get.arguments['email'] : "";
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: AppColors.altBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            FocusManager.instance.primaryFocus?.unfocus();
+            Get.back();
+          },
         ),
       ),
       body: SingleChildScrollView(
@@ -61,7 +65,7 @@ class OtpView extends GetView<AuthController> {
                       hintText: "123456",
                       hintStyle: TextStyle(color: Colors.grey.shade600),
                       filled: true,
-                      fillColor: const Color(0xFF0F0F1E),
+                      fillColor: AppColors.fieldBackground,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -104,11 +108,11 @@ class OtpView extends GetView<AuthController> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4C4DDC),
+                    backgroundColor: AppColors.secondaryPrimary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
                     elevation: 8,
-                    shadowColor: const Color(0xFF4C4DDC).withOpacity(0.5),
+                    shadowColor: AppColors.primary.withOpacity(0.5),
                   ),
                   child: controller.isLoading.value
                       ? const CircularProgressIndicator(color: Colors.white)

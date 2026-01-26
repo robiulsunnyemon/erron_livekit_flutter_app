@@ -4,14 +4,15 @@ import '../../../data/services/auth_service.dart';
 import '../controllers/explore_controller.dart';
 import '../../../data/models/live_stream_model.dart';
 import '../../../routes/app_pages.dart';
+import '../../../core/theme/app_colors.dart';
 
 class ExploreView extends GetView<ExploreController> {
-  const ExploreView({Key? key}) : super(key: key);
+  const ExploreView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0B15), // Deep dark background
+      backgroundColor: AppColors.background, // Deep dark background
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,13 +34,15 @@ class ExploreView extends GetView<ExploreController> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: TextField(
+                controller: controller.searchController,
+                onChanged: (val) => controller.onSearch(val),
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  hintText: "Search creators, tags, or categories",
+                  hintText: "Search",
                   hintStyle: TextStyle(color: Colors.grey.shade500),
                   prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
                   filled: true,
-                  fillColor: const Color(0xFF161621),
+                  fillColor: AppColors.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30),
                     borderSide: BorderSide.none,
@@ -69,7 +72,7 @@ class ExploreView extends GetView<ExploreController> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                             decoration: BoxDecoration(
-                              color: isSelected ? const Color(0xFF4C4DDC) : const Color(0xFF161621),
+                              color: isSelected ? AppColors.secondaryPrimary : const Color(0xFF161621),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: isSelected ? Colors.transparent : Colors.grey.shade800,
@@ -95,7 +98,7 @@ class ExploreView extends GetView<ExploreController> {
             Expanded(
               child: Obx(() {
                 if (controller.isLoading.value) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFF4C4DDC)));
+                  return const Center(child: CircularProgressIndicator(color: AppColors.primary));
                 }
                 
                 if (controller.streams.isEmpty) {
@@ -111,7 +114,7 @@ class ExploreView extends GetView<ExploreController> {
                   padding: const EdgeInsets.all(16),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    childAspectRatio: 0.7, // Adjust based on your card design
+                    childAspectRatio: 0.65, // Unified ratio
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),
@@ -131,15 +134,19 @@ class ExploreView extends GetView<ExploreController> {
   }
 
   Widget _buildLiveCard(LiveStreamModel stream) {
+    final shady = stream.host?.shady ?? 0;
+    final legit = 100 - shady;
     return GestureDetector(
       onTap: () => controller.joinStream(stream),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           image: DecorationImage(
-            image: NetworkImage(stream.thumbnail != null && stream.thumbnail!.isNotEmpty 
+            image: NetworkImage(
+                stream.thumbnail != null && stream.thumbnail!.isNotEmpty 
                 ? AuthService.getFullUrl(stream.thumbnail!)
-                : "https://via.placeholder.com/300"), // Fallback or base URL handling
+                : "https://via.placeholder.com/300"
+            ),
             fit: BoxFit.cover,
           ),
           boxShadow: [
@@ -152,7 +159,7 @@ class ExploreView extends GetView<ExploreController> {
         ),
         child: Stack(
           children: [
-            // Gradient Overlay
+            // Dark Gradient Overlay
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
@@ -166,63 +173,58 @@ class ExploreView extends GetView<ExploreController> {
                 ),
               ),
             ),
-            
-            // Live Tag & Viewers
+
+            // Top Tags
             Positioned(
-              top: 12,
-              left: 12,
-              right: 12,
+              top: 10,
+              left: 10,
+              right: 10,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
+                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF005C), // Pink/Red for LIVE
+                      color: AppColors.accent,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text(
-                      "Live",
-                      style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                    ),
+                    child: const Text("Live", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
+                   Row(
                       children: [
-                        const Icon(Icons.remove_red_eye, color: Colors.white, size: 12),
-                        const SizedBox(width: 4),
-                        Text(
-                          "${stream.totalViews}", // Or active viewers if model has it
-                          style: const TextStyle(color: Colors.white, fontSize: 10),
+                         Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.remove_red_eye, color: Colors.white, size: 10),
+                              const SizedBox(width: 4),
+                              Text("${stream.totalViews}", style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: stream.isPremium ? AppColors.warning : AppColors.yellow,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                              stream.isPremium ? "${stream.entryFee}" : "Free", 
+                              style: const TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)
+                          ),
                         ),
                       ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: stream.isPremium ? const Color(0xFFFFD700) : const Color(0xFF4CAF50), // Gold/Green
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      stream.isPremium ? "${stream.entryFee}" : "Free",
-                      style: TextStyle(
-                        color: stream.isPremium ? Colors.black : Colors.white, 
-                        fontSize: 10, 
-                        fontWeight: FontWeight.bold
-                      ),
-                    ),
-                  ),
+                   )
                 ],
               ),
             ),
 
-            // User Info
+            // Bottom Info
             Positioned(
               bottom: 12,
               left: 12,
@@ -230,61 +232,88 @@ class ExploreView extends GetView<ExploreController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // User Info
                   Row(
                     children: [
-                       CircleAvatar(
-                        radius: 10,
-                        backgroundImage: NetworkImage(stream.thumbnail ?? ""), // Theoretically host image
-                         // If model has host object, use stream.host.profileImage
+                      Container(
+                        padding: const EdgeInsets.all(1),
+                        decoration: const BoxDecoration(
+                          color: AppColors.accent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: CircleAvatar(
+                          radius: 14,
+                           backgroundImage: NetworkImage(stream.thumbnail ?? ""),
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(
-                          stream.title ?? "Unknown User",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "${stream.hostFirstName ?? ''} ${stream.hostLastName ?? ''}".trim().isEmpty 
+                                  ? "Unknown Host" 
+                                  : "${stream.hostFirstName ?? ''} ${stream.hostLastName ?? ''}",
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                            ),
+                            Text(
+                              stream.title ?? "",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: Colors.grey.shade300, fontSize: 10),
+                            ),
+                          ],
                         ),
-                      ),
+                      )
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    stream.category ?? "General",
-                    style: TextStyle(color: Colors.grey.shade300, fontSize: 12),
-                  ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   
-                  // Trust Score Bar (Mockup based on image)
-                  Stack(
-                    children: [
-                      Container(
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      Container(
-                        height: 4,
-                        width: 100, // Dynamic based on score needed
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF00E676),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ],
+                  // Legit Bar
+                  Container(
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: Row(
+                      children: [
+                        if (legit > 0)
+                          Expanded(
+                            flex: legit.toInt(),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: AppColors.vibrantSuccess,
+                                borderRadius: BorderRadius.horizontal(
+                                  left: const Radius.circular(3),
+                                  right: Radius.circular(shady == 0 ? 3 : 0),
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (shady > 0)
+                          Expanded(
+                            flex: shady.toInt(),
+                             child: Container(
+                               decoration: BoxDecoration(
+                                color: AppColors.accent,
+                                borderRadius: BorderRadius.horizontal(
+                                  right: const Radius.circular(3),
+                                  left: Radius.circular(legit == 0 ? 3 : 0),
+                                ),
+                              ),
+                             ),
+                          )
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Legit: 98%", style: TextStyle(color: Colors.grey.shade400, fontSize: 10)),
-                      Text("Shady: 2%", style: TextStyle(color: Colors.redAccent, fontSize: 10)),
+                      Text("Legit: $legit%", style: TextStyle(color: Colors.grey.shade400, fontSize: 9)),
+                      Text("Shady: $shady%", style: TextStyle(color: Colors.redAccent, fontSize: 9)),
                     ],
                   )
                 ],

@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../data/models/chat_message.dart';
 import '../../../data/services/auth_service.dart';
 import '../controllers/chat_controller.dart';
+import '../../../core/theme/app_colors.dart';
 
 class ChatView extends GetView<ChatController> {
   const ChatView({super.key});
@@ -11,15 +12,15 @@ class ChatView extends GetView<ChatController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0B15),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0B0B15),
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-               color: const Color(0xFF161621),
+               color: AppColors.surface,
                shape: BoxShape.circle,
             ),
              child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.white)
@@ -45,7 +46,7 @@ class ChatView extends GetView<ChatController> {
                 Text(controller.receiverName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                 Row(
                   children: [
-                    Container(width: 6, height: 6, decoration: const BoxDecoration(color: Color(0xFF2ECC71), shape: BoxShape.circle)),
+                    Container(width: 6, height: 6, decoration: const BoxDecoration(color: AppColors.success, shape: BoxShape.circle)),
                     const SizedBox(width: 4),
                     const Text("Online", style: TextStyle(fontSize: 12, color: Colors.grey)),
                   ],
@@ -58,7 +59,7 @@ class ChatView extends GetView<ChatController> {
           IconButton(
             icon: Container(
                padding: const EdgeInsets.all(8),
-               decoration: const BoxDecoration(color: Color(0xFF161621), shape: BoxShape.circle),
+               decoration: const BoxDecoration(color: AppColors.surface, shape: BoxShape.circle),
                child: const Icon(Icons.call, size: 18, color: Colors.blueAccent)
             ),
              onPressed: () => controller.startCall("audio"),
@@ -108,7 +109,7 @@ class ChatView extends GetView<ChatController> {
                             margin: const EdgeInsets.symmetric(vertical: 4),
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             decoration: BoxDecoration(
-                              color: isMe ? const Color(0xFF4C4DDC) : Colors.white,
+                              color: isMe ? AppColors.primary : Colors.white,
                               borderRadius: BorderRadius.only(
                                 topLeft: const Radius.circular(20),
                                 topRight: const Radius.circular(20),
@@ -235,7 +236,7 @@ class ChatView extends GetView<ChatController> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: const BoxDecoration(
-        color: Color(0xFF0B0B15),
+        color: AppColors.background,
         border: Border(top: BorderSide(color: Colors.white10)),
       ),
       child: SafeArea(

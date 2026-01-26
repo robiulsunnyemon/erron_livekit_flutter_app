@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/finance_controller.dart';
+import '../../../core/theme/app_colors.dart';
 
 class LinkAccountView extends GetView<FinanceController> {
-  const LinkAccountView({Key? key}) : super(key: key);
+  const LinkAccountView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F1A),
+      backgroundColor: AppColors.secondaryBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,

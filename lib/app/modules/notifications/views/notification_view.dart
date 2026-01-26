@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/notification_controller.dart';
 import '../../../data/models/notification_model.dart';
+import '../../../core/theme/app_colors.dart';
 import 'package:intl/intl.dart';
 
 class NotificationView extends GetView<NotificationController> {
@@ -10,7 +11,7 @@ class NotificationView extends GetView<NotificationController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F1A), // Dark background
+      backgroundColor: AppColors.secondaryBackground, // Dark background
       appBar: AppBar(
         title: const Text("Notifications", style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white)),
         centerTitle: true,
@@ -27,7 +28,7 @@ class NotificationView extends GetView<NotificationController> {
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator(color: Color(0xFF4C4DDC)));
+          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
         }
 
         if (controller.notifications.isEmpty) {
@@ -80,7 +81,7 @@ class NotificationView extends GetView<NotificationController> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFF161621),
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -127,7 +128,7 @@ class NotificationView extends GetView<NotificationController> {
                     width: 10,
                     height: 10,
                     decoration: const BoxDecoration(
-                      color: Color(0xFFFF005C), // Pink dot from screenshot
+                      color: AppColors.accent, // Pink dot from screenshot
                       shape: BoxShape.circle,
                     ),
                   ),

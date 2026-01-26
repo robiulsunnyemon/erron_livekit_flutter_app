@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 
+import '../modules/call/bindings/call_binding.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
 import '../modules/start_live/bindings/start_live_binding.dart';
@@ -33,8 +34,9 @@ import '../modules/finance/views/withdraw_amount_view.dart';
 import '../modules/finance/views/payout_success_view.dart';
 import '../modules/profile/bindings/edit_profile_binding.dart';
 import '../modules/profile/views/edit_profile_view.dart';
-import '../modules/call/bindings/call_binding.dart';
 import '../modules/call/views/call_view.dart';
+import '../modules/payment_history/bindings/payment_history_binding.dart';
+import '../modules/payment_history/views/payment_history_view.dart';
 
 part 'app_routes.dart';
 
@@ -147,6 +149,11 @@ class AppPages {
       name: '/call',
       page: () => const CallView(),
       binding: CallBinding(),
+    ),
+    GetPage(
+      name: _Paths.PAYMENT_HISTORY,
+      page: () => const PaymentHistoryView(),
+      binding: PaymentHistoryBinding(),
     ),
   ];
 }

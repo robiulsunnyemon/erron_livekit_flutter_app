@@ -248,4 +248,20 @@ class StreamingService {
       return [];
     }
   }
+  Future<List<LiveStreamModel>> searchStreams(String query) async {
+    final url = Uri.parse("$_baseUrl/streaming/search?q=$query");
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((e) => LiveStreamModel.fromJson(e)).toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print("Error searching streams: $e");
+      return [];
+    }
+  }
 }

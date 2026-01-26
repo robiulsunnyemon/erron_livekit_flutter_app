@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/start_live_controller.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../profile/controllers/profile_controller.dart';
+import '../../../data/services/auth_service.dart';
 
 class StartLiveView extends GetView<StartLiveController> {
   const StartLiveView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final profileController = Get.find<ProfileController>();
+    
     return Scaffold(
       backgroundColor: Colors.black,
       resizeToAvoidBottomInset: false, // Prevent background from resizing when keyboard opens
@@ -15,11 +20,18 @@ class StartLiveView extends GetView<StartLiveController> {
         children: [
           // 1. Background (Camera Placeholder)
           // In a real app, this would be the CameraPreview widget
-          Image.network(
-            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1964&auto=format&fit=crop", 
-            fit: BoxFit.cover,
-            errorBuilder: (ctx, err, stack) => Container(color: Colors.grey.shade900),
-          ),
+          Obx(() {
+            final user = profileController.user.value;
+            final coverUrl = (user?.coverImage != null && user!.coverImage!.isNotEmpty)
+                ? AuthService.getFullUrl(user.coverImage!)
+                : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1964&auto=format&fit=crop";
+                
+            return Image.network(
+              coverUrl, 
+              fit: BoxFit.cover,
+              errorBuilder: (ctx, err, stack) => Container(color: Colors.grey.shade900),
+            );
+          }),
           
           // Overlay Gradient for readability
           Container(
@@ -93,7 +105,7 @@ class StartLiveView extends GetView<StartLiveController> {
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
               decoration: BoxDecoration(
-                color: const Color(0xFF0B0B15).withOpacity(0.95), // Dark background matching design
+                color: AppColors.background.withOpacity(0.95), // Dark background matching design
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(24),
                   topRight: Radius.circular(24),
@@ -178,7 +190,7 @@ class StartLiveView extends GetView<StartLiveController> {
                   Container(
                     height: 50,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF161621),
+                      color: AppColors.surface,
                       borderRadius: BorderRadius.circular(25),
                     ),
                     child: Row(
@@ -189,7 +201,7 @@ class StartLiveView extends GetView<StartLiveController> {
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               decoration: BoxDecoration(
-                                color: !controller.isPremium.value ? const Color(0xFF4C4DDC) : Colors.transparent, // Blue when selected
+                                color: !controller.isPremium.value ? AppColors.secondaryPrimary : Colors.transparent, // Blue when selected
                                 borderRadius: BorderRadius.circular(25),
                               ),
                               child: Center(
@@ -217,7 +229,7 @@ class StartLiveView extends GetView<StartLiveController> {
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               decoration: BoxDecoration(
-                                color: controller.isPremium.value ? const Color(0xFFFFD700) : Colors.transparent, // Gold when selected
+                                color: controller.isPremium.value ? AppColors.warning : Colors.transparent, // Gold when selected
                                 borderRadius: BorderRadius.circular(25),
                               ),
                               child: Center(
@@ -305,7 +317,7 @@ class StartLiveView extends GetView<StartLiveController> {
                     child: ElevatedButton(
                       onPressed: controller.isLoading.value ? null : controller.startLive,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: controller.isPremium.value ? const Color(0xFFFFD700) : const Color(0xFF4C4DDC),
+                        backgroundColor: controller.isPremium.value ? AppColors.warning : AppColors.secondaryPrimary,
                         foregroundColor: controller.isPremium.value ? Colors.black : Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
                         elevation: 8,
@@ -329,7 +341,7 @@ class StartLiveView extends GetView<StartLiveController> {
       Container(
         padding: const EdgeInsets.all(20),
         decoration: const BoxDecoration(
-          color: Color(0xFF161621),
+          color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
@@ -349,7 +361,7 @@ class StartLiveView extends GetView<StartLiveController> {
                       controller.selectedCategory.value = cat;
                       Get.back();
                     },
-                    trailing: controller.selectedCategory.value == cat ? const Icon(Icons.check, color: Color(0xFF4C4DDC)) : null,
+                    trailing: controller.selectedCategory.value == cat ? const Icon(Icons.check, color: AppColors.primary) : null,
                   );
                 },
               ),

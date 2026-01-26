@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/finance_controller.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../profile/controllers/profile_controller.dart';
 
 class WithdrawAmountView extends GetView<FinanceController> {
@@ -11,7 +12,7 @@ class WithdrawAmountView extends GetView<FinanceController> {
     final profileCtrl = Get.find<ProfileController>();
     
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F1A),
+      backgroundColor: AppColors.secondaryBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -65,7 +66,7 @@ class WithdrawAmountView extends GetView<FinanceController> {
         hintText: "Enter amount",
         hintStyle: TextStyle(color: Colors.white.withOpacity(0.1), fontSize: 24),
         enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white12)),
-        focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF2E3FE7))),
+        focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppColors.secondaryPrimary)),
         suffixIcon: TextButton(
           onPressed: () {
             final profileCtrl = Get.find<ProfileController>();
@@ -73,7 +74,7 @@ class WithdrawAmountView extends GetView<FinanceController> {
             controller.withdrawAmountController.text = maxAmount;
             controller.updateAmount(maxAmount);
           },
-          child: const Text("Max", style: TextStyle(color: Color(0xFF2E3FE7))),
+          child: const Text("Max", style: TextStyle(color: AppColors.secondaryPrimary)),
         ),
       ),
     );
@@ -98,7 +99,7 @@ class WithdrawAmountView extends GetView<FinanceController> {
           "Your receive", 
           Text(
             "\$${(controller.amount.value * controller.tokenRateUsd.value * 0.9).toStringAsFixed(2)}", 
-            style: const TextStyle(color: Color(0xFF2E3FE7), fontWeight: FontWeight.bold, fontSize: 18),
+            style: const TextStyle(color: AppColors.secondaryPrimary, fontWeight: FontWeight.bold, fontSize: 18),
           ), 
           isMain: true,
         )),
@@ -130,7 +131,7 @@ class WithdrawAmountView extends GetView<FinanceController> {
       child: ElevatedButton(
         onPressed: () => controller.submitWithdrawal(),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF2E3FE7),
+          backgroundColor: AppColors.secondaryPrimary,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         ),
         child: const Text(

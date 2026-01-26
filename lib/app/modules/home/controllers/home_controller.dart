@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import '../../../data/models/live_stream_model.dart';
 import '../../../data/services/streaming_service.dart';
-
+import 'package:flutter/material.dart';
 
 class HomeController extends GetxController {
   final StreamingService _streamingService = StreamingService();
@@ -10,6 +10,9 @@ class HomeController extends GetxController {
   
   final selectedFilter = "All".obs;
   final filters = ["All", "Free", "Paid"];
+  
+  final isSearching = false.obs;
+  final searchController = TextEditingController();
 
   @override
   void onInit() {
@@ -62,6 +65,20 @@ class HomeController extends GetxController {
         });
     } catch (e) {
         Get.snackbar("Error", "Could not join stream: $e");
+    }
+  }
+
+  Future<void> onSearch(String query) async {
+    if (query.isEmpty) {
+      fetchStreams();
+      return;
+    }
+    isLoading.value = true;
+    try {
+      final result = await _streamingService.searchStreams(query);
+      streams.assignAll(result);
+    } finally {
+      isLoading.value = false;
     }
   }
 }

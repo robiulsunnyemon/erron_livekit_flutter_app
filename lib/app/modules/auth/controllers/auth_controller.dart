@@ -40,7 +40,10 @@ class AuthController extends GetxController {
     isLoading.value = false;
     
     if (success) {
-      Get.offAllNamed(Routes.DASHBOARD);
+      FocusManager.instance.primaryFocus?.unfocus();
+      Future.delayed(Duration.zero, () {
+        Get.offAllNamed(Routes.DASHBOARD);
+      });
     }
   }
 
@@ -70,7 +73,10 @@ class AuthController extends GetxController {
 
     if (success) {
       // Pass email to OTP view
-      Get.toNamed(Routes.OTP, arguments: {'email': emailController.text.trim()});
+      FocusManager.instance.primaryFocus?.unfocus();
+      Future.delayed(Duration.zero, () {
+        Get.toNamed(Routes.OTP, arguments: {'email': emailController.text.trim()});
+      });
     }
   }
 
@@ -87,7 +93,10 @@ class AuthController extends GetxController {
     isLoading.value = false;
 
     if (success) {
-      Get.offAllNamed(Routes.LOGIN);
+      FocusManager.instance.primaryFocus?.unfocus();
+      Future.delayed(Duration.zero, () {
+        Get.offAllNamed(Routes.LOGIN);
+      });
     }
   }
 
@@ -116,9 +125,12 @@ class AuthController extends GetxController {
     isLoading.value = false;
 
     if (success) {
-      Get.toNamed(Routes.OTP, arguments: {
-        'email': emailController.text.trim(),
-        'isReset': true
+      FocusManager.instance.primaryFocus?.unfocus();
+      Future.delayed(Duration.zero, () {
+        Get.toNamed(Routes.OTP, arguments: {
+          'email': emailController.text.trim(),
+          'isReset': true
+        });
       });
     }
   }
@@ -133,7 +145,10 @@ class AuthController extends GetxController {
      isLoading.value = false;
 
      if (success) {
-       Get.toNamed(Routes.RESET_PASSWORD, arguments: {'email': email});
+       FocusManager.instance.primaryFocus?.unfocus();
+       Future.delayed(Duration.zero, () {
+         Get.toNamed(Routes.RESET_PASSWORD, arguments: {'email': email});
+       });
      }
   }
 
@@ -156,19 +171,18 @@ class AuthController extends GetxController {
     isLoading.value = false;
 
     if (success) {
-      Get.offAllNamed(Routes.LOGIN);
-      Get.snackbar("Success", "Password reset successfully");
+      FocusManager.instance.primaryFocus?.unfocus();
+      Future.delayed(Duration.zero, () {
+        Get.offAllNamed(Routes.LOGIN);
+        Get.snackbar("Success", "Password reset successfully");
+      });
     }
   }
   
   @override
   void onClose() {
-    emailController.dispose();
-    passwordController.dispose();
-    firstNameController.dispose();
-    lastNameController.dispose();
-    otpController.dispose();
-    newPasswordController.dispose();
+    // Note: Manual disposal removed to avoid race conditions during GetX controller deletion and widget rebuild.
+    // GetX handles the cleanup once the controller is removed from memory.
     super.onClose();
   }
 }

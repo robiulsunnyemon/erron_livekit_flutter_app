@@ -1,3 +1,4 @@
+import 'package:erron_live_app/app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
@@ -8,13 +9,16 @@ class ResetPasswordView extends GetView<AuthController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E), // Dark background
+      backgroundColor: AppColors.altBackground, // Dark background
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            FocusManager.instance.primaryFocus?.unfocus();
+            Get.back();
+          },
         ),
       ),
       body: SingleChildScrollView(
@@ -70,7 +74,7 @@ class ResetPasswordView extends GetView<AuthController> {
               child: ElevatedButton(
                 onPressed: controller.isLoading.value ? null : controller.resetPassword,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4C4DDC), // Blurple color
+                  backgroundColor: AppColors.secondaryPrimary, // Blurple color
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
                   elevation: 8,
@@ -107,7 +111,7 @@ class ResetPasswordView extends GetView<AuthController> {
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey.shade600),
             filled: true,
-            fillColor: const Color(0xFF0F0F1E), // Slightly darker for input
+            fillColor: AppColors.fieldBackground, // Slightly darker for input
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,

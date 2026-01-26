@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/finance_controller.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../routes/app_pages.dart';
 
 class WithdrawToView extends GetView<FinanceController> {
@@ -9,7 +10,7 @@ class WithdrawToView extends GetView<FinanceController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F1A),
+      backgroundColor: AppColors.secondaryBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
