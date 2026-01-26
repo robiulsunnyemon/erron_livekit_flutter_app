@@ -6,10 +6,12 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/streaming_service.dart';
+import '../../../data/services/social_service.dart';
 import '../views/stream_review_dialog.dart';
 
 class LiveStreamingController extends GetxController {
   final StreamingService _streamingService = StreamingService();
+  final SocialService _socialService = SocialService();
   
   Room? room;
   late final EventsListener<RoomEvent> listener;
@@ -25,6 +27,11 @@ class LiveStreamingController extends GetxController {
   final comments = <Map<String, dynamic>>[].obs;
   final totalLikes = 0.obs;
   final currentUser = Rxn<UserModel>();
+
+  // Follow State
+  final isFollowing = false.obs;
+  final hostShady = 0.0.obs;
+  final hostLegit = 100.0.obs;
   
   final TextEditingController commentController = TextEditingController();
 
@@ -49,6 +56,9 @@ class LiveStreamingController extends GetxController {
   // Backend: valid IDs are MongoDB ObjectIds. Channel name is "live_ID_TIMESTAMP"
   // So we probably need to pass the real Mongo ID (session_id) in arguments.
   String sessionId = "";
+  String hostId = "";
+  final hostFullName = "".obs;
+  final hostProfileImage = "".obs;
   String streamTitle = "";
   String streamCategory = "";
 
@@ -62,16 +72,94 @@ class LiveStreamingController extends GetxController {
       roomName = args['room_name'] ?? "";
       isHost = args['is_host'] ?? false;
       sessionId = args['session_id'] ?? ""; 
+      hostId = args['host_id'] ?? "";
+      hostFullName.value = args['host_name'] ?? "";
+      hostProfileImage.value = args['host_image'] ?? "";
       streamTitle = args['title'] ?? "";
       streamCategory = args['category'] ?? "";
       
       isPremium.value = args['is_premium'] ?? false;
       hasPaid.value = args['has_paid'] ?? false;
       entryFee.value = (args['entry_fee'] ?? 0).toDouble();
+      
+      hostShady.value = (args['host_shady'] ?? 0).toDouble();
+      hostLegit.value = 100.0 - hostShady.value;
     }
     connect();
     _fetchCurrentUser();
     _startPreviewTimer();
+    _checkFollowStatus();
+  }
+
+  void _fetchCurrentUser() async {
+    try {
+      final user = await AuthService.to.getMyProfile();
+      if (user != null) {
+        currentUser.value = user;
+        if (isHost) {
+          hostFullName.value = user.fullName;
+          hostProfileImage.value = user.profileImage ?? "";
+          hostShady.value = user.shady ?? 0.0;
+          hostLegit.value = 100.0 - hostShady.value;
+        }
+      }
+    } catch (e) {
+      print("Error fetching profile: $e");
+    }
+  }
+
+  Future<void> _checkFollowStatus() async {
+    if (isHost || hostId.isEmpty) {
+      print("Skip follow check: isHost=$isHost, hostId=$hostId");
+      return;
+    }
+    
+    try {
+      print("Checking follow status for host: $hostId");
+      isFollowing.value = await _socialService.isFollowing(hostId);
+      print("Follow status: ${isFollowing.value}");
+    } catch (e) {
+      print("Error checking follow status: $e");
+    }
+  }
+
+  Future<void> toggleFollow() async {
+    if (hostId.isEmpty) {
+      print("Cannot toggle follow: hostId is empty");
+      return;
+    }
+    
+    try {
+      bool success;
+      if (isFollowing.value) {
+        print("Attempting to Unfollow: $hostId");
+        success = await _socialService.unfollowUser(hostId);
+        if (success) {
+          isFollowing.value = false;
+          Get.snackbar("Social", "Unfollowed successfully", 
+            backgroundColor: Colors.white24, colorText: Colors.white, snackPosition: SnackPosition.TOP);
+        } else {
+          print("Unfollow failed");
+          // Re-check status from server to sync state
+          isFollowing.value = await _socialService.isFollowing(hostId);
+        }
+      } else {
+        print("Attempting to Follow: $hostId");
+        success = await _socialService.followUser(hostId);
+        if (success) {
+          isFollowing.value = true;
+          Get.snackbar("Social", "Following successfully", 
+            backgroundColor: Colors.white24, colorText: Colors.white, snackPosition: SnackPosition.TOP);
+        } else {
+          print("Follow failed");
+          // Re-check status from server to sync state
+          isFollowing.value = await _socialService.isFollowing(hostId);
+        }
+      }
+    } catch (e) {
+      print("Follow Toggle Exception: $e");
+      Get.snackbar("Error", "Action failed: $e");
+    }
   }
 
   void _startPreviewTimer() {
@@ -122,14 +210,6 @@ class LiveStreamingController extends GetxController {
     }
   }
 
-  Future<void> _fetchCurrentUser() async {
-    try {
-      final profile = await AuthService.to.getMyProfile();
-      currentUser.value = profile;
-    } catch (e) {
-      print("Error fetching profile: $e");
-    }
-  }
 
   Future<void> connect() async {
     await [Permission.camera, Permission.microphone].request();

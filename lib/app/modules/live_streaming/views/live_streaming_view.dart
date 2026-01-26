@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:livekit_client/livekit_client.dart';
 
+import '../../../data/services/auth_service.dart';
 import '../controllers/live_streaming_controller.dart';
 
 class LiveStreamingView extends GetView<LiveStreamingController> {
@@ -101,36 +102,84 @@ class LiveStreamingView extends GetView<LiveStreamingController> {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Row(
                       children: [
-                        Flexible(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                                color: Colors.black45, 
-                                borderRadius: BorderRadius.circular(20)
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const CircleAvatar(
-                                      radius: 12, 
-                                      backgroundColor: Colors.grey,
-                                      child: Icon(Icons.person, color: Colors.white, size: 16),   //// profile image
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      controller.streamTitle.isNotEmpty ? controller.streamTitle : controller.roomName,
-                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                        // Host Profile Card (Glassmorphism)
+                        Obx(() => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(color: Colors.white24),
                           ),
-                        ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircleAvatar(
+                                radius: 18,
+                                backgroundColor: Colors.pinkAccent,
+                                child: CircleAvatar(
+                                  radius: 17,
+                                  backgroundColor: Colors.grey,
+                                  backgroundImage: controller.hostProfileImage.value.isNotEmpty
+                                      ? NetworkImage(AuthService.getFullUrl(controller.hostProfileImage.value))
+                                      : null,
+                                  child: controller.hostProfileImage.value.isEmpty
+                                      ? const Icon(Icons.person, color: Colors.white, size: 20)
+                                      : null,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    controller.hostFullName.value,
+                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  // Dynamic Progress Bar
+                                  Container(
+                                    width: 80,
+                                    height: 4,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(2),
+                                      color: Colors.pinkAccent, // Shady part
+                                    ),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Container(
+                                        width: 80 * (controller.hostLegit.value / (controller.hostLegit.value + controller.hostShady.value == 0 ? 100 : controller.hostLegit.value + controller.hostShady.value)),
+                                        height: 4,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(2),
+                                          color: Colors.greenAccent, // Legit part
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(width: 12),
+                              // Follow/Unfollow Button
+                              if (!controller.isHost)
+                                GestureDetector(
+                                  onTap: controller.toggleFollow,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.pinkAccent,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      controller.isFollowing.value ? "Unfollow" : "Follow",
+                                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                              const SizedBox(width: 4),
+                            ],
+                          ),
+                        )),
                         const SizedBox(width: 10),
                         // 3s Preview Countdown Badge
                         Obx(() {
@@ -138,7 +187,7 @@ class LiveStreamingView extends GetView<LiveStreamingController> {
                            final time = controller.countdown.value;
                            if (isPreview) {
                              return Container(
-                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                decoration: BoxDecoration(
                                  color: Colors.yellowAccent,
                                  borderRadius: BorderRadius.circular(20),
@@ -153,15 +202,12 @@ class LiveStreamingView extends GetView<LiveStreamingController> {
                         }),
                         const Spacer(),
                         CircleAvatar(
-                          backgroundColor: Colors.black26,
-                          child: GestureDetector(
-                            onTap: (){
-                              controller.leaveRoom();
-                            },
-                            child: IconButton(
-                              icon: const Icon(Icons.close, color: Colors.white),
-                              onPressed: controller.leaveRoom,
-                            ),
+                          radius: 18,
+                          backgroundColor: Colors.redAccent.withOpacity(0.8),
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                            onPressed: controller.leaveRoom,
                           ),
                         )
                       ],

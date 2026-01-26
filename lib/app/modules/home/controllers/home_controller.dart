@@ -65,6 +65,10 @@ class HomeController extends GetxController {
             "is_premium": result['is_premium'] ?? false,
             "has_paid": result['has_paid'] ?? false,
             "entry_fee": result['entry_fee'] ?? 0.0,
+            "host_id": stream.host?.id ?? "",
+            "host_shady": stream.host?.shady ?? 0.0,
+            "host_name": stream.host?.fullName ?? "Host",
+            "host_image": stream.host?.profileImage ?? "",
         });
     } catch (e) {
         Get.snackbar("Error", "Could not join stream: $e");
