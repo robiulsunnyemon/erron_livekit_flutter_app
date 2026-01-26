@@ -80,7 +80,7 @@ class ChatView extends GetView<ChatController> {
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value && controller.messages.isEmpty) {
-                return const Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator(color:  AppColors.secondaryPrimary,));
               }
               return ListView.builder(
                 controller: controller.scrollController,
@@ -128,7 +128,7 @@ class ChatView extends GetView<ChatController> {
                                     decoration: BoxDecoration(
                                       color: Colors.black12,
                                       borderRadius: BorderRadius.circular(8),
-                                      border: Border(left: BorderSide(color: isMe ? Colors.white : const Color(0xFF4C4DDC), width: 3)),
+                                      border: Border(left: BorderSide(color: isMe ? Colors.white : AppColors.secondaryPrimary, width: 3)),
                                     ),
                                     child: Text(
                                       repliedMsg.message ?? "Photo",
@@ -203,7 +203,7 @@ class ChatView extends GetView<ChatController> {
       color: Colors.grey[900],
       child: Row(
         children: [
-          const Icon(Icons.reply, color: Colors.blueAccent, size: 20),
+          const Icon(Icons.reply, color: AppColors.secondaryPrimary, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -212,7 +212,7 @@ class ChatView extends GetView<ChatController> {
               children: [
                 Text(
                   msg.senderId == controller.receiverId ? controller.receiverName : "You",
-                  style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 12),
+                  style: const TextStyle(color:  AppColors.secondaryPrimary, fontWeight: FontWeight.bold, fontSize: 12),
                 ),
                 Text(
                   msg.message ?? "Photo",
@@ -290,7 +290,7 @@ class ChatView extends GetView<ChatController> {
                  decoration: const BoxDecoration(
                    color: Colors.transparent, // Or a send button color if visible in screenshot? Looks like just an icon
                  ),
-                 child: const Icon(Icons.send, color: Colors.blueAccent), // Or white/grey
+                 child: const Icon(Icons.send, color: AppColors.secondaryPrimary), // Or white/grey
                ),
              ),
           ],

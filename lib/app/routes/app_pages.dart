@@ -37,13 +37,15 @@ import '../modules/profile/views/edit_profile_view.dart';
 import '../modules/call/views/call_view.dart';
 import '../modules/payment_history/bindings/payment_history_binding.dart';
 import '../modules/payment_history/views/payment_history_view.dart';
+import '../modules/welcome/bindings/welcome_binding.dart';
+import '../modules/welcome/views/welcome_view.dart';
 
 part 'app_routes.dart';
 
 class AppPages {
   AppPages._();
 
-  static const INITIAL = Routes.LOGIN;
+  static const INITIAL = Routes.WELCOME;
 
   static final routes = [
     GetPage(
@@ -154,6 +156,11 @@ class AppPages {
       name: _Paths.PAYMENT_HISTORY,
       page: () => const PaymentHistoryView(),
       binding: PaymentHistoryBinding(),
+    ),
+    GetPage(
+      name: _Paths.WELCOME,
+      page: () => const WelcomeView(),
+      binding: WelcomeBinding(),
     ),
   ];
 }
