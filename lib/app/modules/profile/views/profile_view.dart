@@ -144,15 +144,24 @@ class ProfileView extends GetView<ProfileController> {
                     ),
                     
                     // Top Bar Actions
-                    SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Icon(Icons.arrow_back, color: Colors.white),
-                          ],
-                        ),
+                    Positioned(
+                      top: 40,
+                      right: 16,
+                      child: IconButton(
+                        icon: const Icon(Icons.logout, color: Colors.white),
+                        onPressed: () {
+                          Get.defaultDialog(
+                            backgroundColor:AppColors.warning,
+                            title: "Logout",
+                            middleText: "Are you sure you want to logout?",
+                            textConfirm: "Yes",
+                            textCancel: "No",
+                            confirmTextColor: Colors.white,
+                            onConfirm: () {
+                              controller.logout();
+                            }
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -317,8 +326,8 @@ class ProfileView extends GetView<ProfileController> {
                        ],
                      ),
                      const SizedBox(height: 10),
-                     Text("Male", style: TextStyle(color: Colors.grey.shade400)),
-                     Text("21 years old", style: TextStyle(color: Colors.grey.shade400)),
+                     Text(user.gender??'Unknown', style: TextStyle(color: Colors.grey.shade400)),
+                     Text(user.dob??'Date of Birth: Unknown', style: TextStyle(color: Colors.grey.shade400)),
                      Text(user.country ?? "Unknown Location", style: TextStyle(color: Colors.grey.shade400)),
                      const SizedBox(height: 20),
                    ],
@@ -358,7 +367,7 @@ class ProfileView extends GetView<ProfileController> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
                         image: DecorationImage(
-                          image: NetworkImage(stream.thumbnail ?? "https://via.placeholder.com/300"),
+                          image: NetworkImage(stream.thumbnail ?? stream.host?.profileImage ?? "https://cdn.pixabay.com/photo/2022/12/07/03/09/ai-generated-7640161_1280.jpg"),
                           fit: BoxFit.cover,
                         ),
                       ),

@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import '../../../data/models/live_stream_model.dart';
 import '../../../data/services/streaming_service.dart';
 import 'package:flutter/material.dart';
+import '../../../core/utils/snackbar_helper.dart';
 
 class HomeController extends GetxController {
   final StreamingService _streamingService = StreamingService();
@@ -71,7 +72,7 @@ class HomeController extends GetxController {
             "host_image": stream.host?.profileImage ?? "",
         });
     } catch (e) {
-        Get.snackbar("Error", "Could not join stream: $e");
+        SnackbarHelper.showError("Error", "Could not join stream: $e");
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import '../../core/utils/snackbar_helper.dart';
 import '../models/user_model.dart';
 import '../models/payout_model.dart';
 
@@ -13,8 +14,8 @@ class AuthService extends GetxService {
   final _tokenKey = 'access_token';
   
   // Base URL
-  static const String baseUrl = 'https://erronliveapp.mtscorporate.com/api/v1';
-  static const String baseOrigin = 'https://erronliveapp.mtscorporate.com';
+  static const String baseUrl = 'https://erronliveapp.instalive.cloud/api/v1';
+  static const String baseOrigin = 'https://erronliveapp.instalive.cloud';
 
   static String getFullUrl(String? path) {
     if (path == null || path.isEmpty) return "";
@@ -51,11 +52,11 @@ class AuthService extends GetxService {
         await _box.write(_tokenKey, token);
         return true;
       } else {
-        Get.snackbar("Login Failed", "Invalid credentials");
+        SnackbarHelper.showError("Login Failed", "Invalid credentials");
         return false;
       }
     } catch (e) {
-      Get.snackbar("Error", "Something went wrong: $e");
+      SnackbarHelper.showError("Error", "Something went wrong: $e");
       return false;
     }
   }
@@ -77,17 +78,17 @@ class AuthService extends GetxService {
       if (response.statusCode == 201) {
         return true;
       } else {
-        Get.snackbar("Signup Failed", response.body);
+        SnackbarHelper.showError("Signup Failed", response.body);
         return false;
       }
     } catch (e) {
-      Get.snackbar("Error", "Something went wrong: $e");
+      SnackbarHelper.showError("Error", "Something went wrong: $e");
       return false;
     }
   }
 
   Future<void> logout() async {
-    await _box.remove(_tokenKey);
+    await _box.erase();
     Get.offAllNamed('/login');
   }
 
@@ -126,11 +127,11 @@ class AuthService extends GetxService {
       if (response.statusCode == 201) {
         return jsonDecode(response.body);
       } else {
-        Get.snackbar("KYC Submission Failed", response.body);
+        SnackbarHelper.showError("KYC Submission Failed", response.body);
         return null;
       }
     } catch (e) {
-      Get.snackbar("Error", "Submission Error: $e");
+      SnackbarHelper.showError("Error", "Submission Error: $e");
       return null;
     }
   }
@@ -170,11 +171,11 @@ class AuthService extends GetxService {
         // But predominantly this is for activation.
         return true;
       } else {
-        Get.snackbar("Verification Failed", response.body);
+        SnackbarHelper.showError("Verification Failed", response.body);
         return false;
       }
     } catch (e) {
-      Get.snackbar("Error", "Something went wrong: $e");
+      SnackbarHelper.showError("Error", "Something went wrong: $e");
       return false;
     }
   }
@@ -193,11 +194,11 @@ class AuthService extends GetxService {
       if (response.statusCode == 200) {
         return true;
       } else {
-        Get.snackbar("Failed to Resend OTP", response.body);
+        SnackbarHelper.showError("Failed to Resend OTP", response.body);
         return false;
       }
     } catch (e) {
-      Get.snackbar("Error", "Something went wrong: $e");
+      SnackbarHelper.showError("Error", "Something went wrong: $e");
       return false;
     }
   }
@@ -219,13 +220,13 @@ class AuthService extends GetxService {
       if (response.statusCode == 200) {
         return true;
       } else {
-        Get.snackbar("Reset Password Failed", response.body);
+        SnackbarHelper.showError("Reset Password Failed", response.body);
         return false;
       }
     }
     catch (e){
       print(e);
-      Get.snackbar("Error", "Something went wrong: $e");
+      SnackbarHelper.showError("Error", "Something went wrong: $e");
       return false;
     }
   }
@@ -266,11 +267,11 @@ class AuthService extends GetxService {
         return true;
       } else {
         print(response.body);
-        Get.snackbar("Error", "Failed to upload profile image: ${response.body}");
+        SnackbarHelper.showError("Error", "Failed to upload profile image: ${response.body}");
         return false;
       }
     } catch (e) {
-      Get.snackbar("Error", "Upload failed: $e");
+      SnackbarHelper.showError("Error", "Upload failed: $e");
       return false;
     }
   }
@@ -291,11 +292,11 @@ class AuthService extends GetxService {
       if (response.statusCode == 200) {
         return true;
       } else {
-        Get.snackbar("Error", "Failed to upload cover image: ${response.body}");
+        SnackbarHelper.showError("Error", "Failed to upload cover image: ${response.body}");
         return false;
       }
     } catch (e) {
-      Get.snackbar("Error", "Upload failed: $e");
+      SnackbarHelper.showError("Error", "Upload failed: $e");
       return false;
     }
   }
@@ -314,11 +315,11 @@ class AuthService extends GetxService {
       if (response.statusCode == 200) {
         return true;
       } else {
-        Get.snackbar("Error", "Failed to update profile: ${response.body}");
+        SnackbarHelper.showError("Error", "Failed to update profile: ${response.body}");
         return false;
       }
     } catch (e) {
-      Get.snackbar("Error", "Update failed: $e");
+      SnackbarHelper.showError("Error", "Update failed: $e");
       return false;
     }
   }
@@ -362,11 +363,11 @@ class AuthService extends GetxService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        Get.snackbar("Error", "Failed to create payment: ${response.body}");
+        SnackbarHelper.showError("Error", "Failed to create payment: ${response.body}");
         return null;
       }
     } catch (e) {
-      Get.snackbar("Error", "Payment Intent Error: $e");
+      SnackbarHelper.showError("Error", "Payment Intent Error: $e");
       return null;
     }
   }

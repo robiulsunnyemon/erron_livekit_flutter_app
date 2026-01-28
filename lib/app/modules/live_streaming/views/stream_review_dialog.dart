@@ -2,6 +2,7 @@ import 'package:erron_live_app/app/routes/app_pages.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/live_streaming_controller.dart';
+import '../../../core/utils/snackbar_helper.dart';
 
 class StreamReviewDialog extends StatefulWidget {
   final LiveStreamingController controller;
@@ -58,7 +59,7 @@ class _StreamReviewDialogState extends State<StreamReviewDialog> {
                 color: Colors.greenAccent,
                 onTap: () {
                   Get.offAllNamed(Routes.DASHBOARD);
-                  Get.snackbar("Success", "Glad you enjoyed the stream!", backgroundColor: Colors.green, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
+                  SnackbarHelper.showSuccess("Success", "Glad you enjoyed the stream!");
                 },
               ),
             ),
@@ -156,8 +157,7 @@ class _StreamReviewDialogState extends State<StreamReviewDialog> {
           child: ElevatedButton(
             onPressed: () async {
               if (selectedCategory == null) {
-                Get.snackbar("Error", "Please select a category", 
-                  backgroundColor: Colors.redAccent, colorText: Colors.white);
+                SnackbarHelper.showError("Error", "Please select a category");
                 return;
               }
               await widget.controller.reportStream(
@@ -165,8 +165,7 @@ class _StreamReviewDialogState extends State<StreamReviewDialog> {
                 reportController.text
               );
               Get.offAllNamed(Routes.DASHBOARD);
-              Get.snackbar("Reported", "Thank you. We will review this stream.", 
-                backgroundColor: Colors.blueAccent, colorText: Colors.white);
+              SnackbarHelper.showNotice("Reported", "Thank you. We will review this stream.");
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueAccent,

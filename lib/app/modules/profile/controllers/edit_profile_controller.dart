@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/services/auth_service.dart';
 import 'profile_controller.dart';
+import '../../../core/utils/snackbar_helper.dart';
 
 class EditProfileController extends GetxController {
   final AuthService _authService = AuthService.to;
@@ -70,7 +71,7 @@ class EditProfileController extends GetxController {
           user.value = updatedUser;
           Get.find<ProfileController>().user.value = updatedUser;
         }
-        Get.snackbar("Success", "${isProfile ? 'Profile' : 'Cover'} image updated successfully");
+        SnackbarHelper.showSuccess("Success", "${isProfile ? 'Profile' : 'Cover'} image updated successfully");
       }
     } finally {
       isUploading.value = false;
@@ -131,7 +132,7 @@ class EditProfileController extends GetxController {
           Get.find<ProfileController>().user.value = updatedUser;
         }
         Get.back();
-        Get.snackbar("Success", "Profile updated successfully");
+        SnackbarHelper.showSuccess("Success", "Profile updated successfully");
       }
     } finally {
       isLoading.value = false;

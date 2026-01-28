@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import '../../core/utils/snackbar_helper.dart';
 import 'auth_service.dart';
 import '../models/beneficiary_model.dart';
 import '../models/payout_model.dart';
@@ -69,11 +70,11 @@ class FinanceService extends GetxService {
         return PayoutRequestModel.fromJson(jsonDecode(response.body));
       } else {
         final error = jsonDecode(response.body);
-        Get.snackbar("Error", error['detail'] ?? "Failed to request payout");
+        SnackbarHelper.showError("Error", error['detail'] ?? "Failed to request payout");
         return null;
       }
     } catch (e) {
-      Get.snackbar("Error", "Something went wrong: $e");
+      SnackbarHelper.showError("Error", "Something went wrong: $e");
       return null;
     }
   }

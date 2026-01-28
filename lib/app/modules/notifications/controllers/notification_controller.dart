@@ -3,6 +3,7 @@ import '../../../data/models/notification_model.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/notification_service.dart';
 import '../../../routes/app_pages.dart';
+import '../../../core/utils/snackbar_helper.dart';
 
 class NotificationController extends GetxController {
   final NotificationService _service = NotificationService();
@@ -28,7 +29,7 @@ class NotificationController extends GetxController {
       unreadCount.value = result['unread_count'];
       notifications.assignAll(result['notifications']);
     } catch (e) {
-      Get.snackbar("Error", "Could not load notifications");
+      SnackbarHelper.showError("Error", "Could not load notifications");
     } finally {
       isLoading.value = false;
     }

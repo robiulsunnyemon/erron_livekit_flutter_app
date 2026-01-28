@@ -5,7 +5,7 @@ import '../controllers/kyc_controller.dart';
 import '../../../core/theme/app_colors.dart';
 
 class KYCView extends GetView<KYCController> {
-  const KYCView({Key? key}) : super(key: key);
+  const KYCView({super.key});
 
   @override
   Widget build(BuildContext context) {

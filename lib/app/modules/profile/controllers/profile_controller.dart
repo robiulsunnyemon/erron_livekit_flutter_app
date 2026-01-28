@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/services/auth_service.dart';
+import '../../../core/utils/snackbar_helper.dart';
 
 class ProfileController extends GetxController {
   final AuthService _authService = AuthService.to;
@@ -81,11 +82,9 @@ class ProfileController extends GetxController {
       await Stripe.instance.presentPaymentSheet();
 
       // 4. Success
-      Get.snackbar(
+      SnackbarHelper.showSuccess(
         "Success", 
         "Payment successful! $tokens tokens added to your wallet.",
-        backgroundColor: Colors.green.withOpacity(0.1),
-        colorText: Colors.white,
       );
       
       // Refresh balance
@@ -96,11 +95,11 @@ class ProfileController extends GetxController {
       if (e.error.code == FailureCode.Canceled) {
         // User canceled, no need to show error
       } else {
-        Get.snackbar("Payment Error", e.error.localizedMessage ?? "An error occurred");
+        SnackbarHelper.showError("Payment Error", e.error.localizedMessage ?? "An error occurred");
       }
     } catch (e) {
       print(e);
-      Get.snackbar("Error", "Something went wrong: $e");
+      SnackbarHelper.showError("Error", "Something went wrong: $e");
     } finally {
       isLoading.value = false;
     }
@@ -121,7 +120,7 @@ class ProfileController extends GetxController {
 
       if (success) {
         await fetchProfile();
-        Get.snackbar("Success", "${isProfile ? 'Profile' : 'Cover'} image updated successfully");
+        SnackbarHelper.showSuccess("Success", "${isProfile ? 'Profile' : 'Cover'} image updated successfully");
       }
     } finally {
       isUploading.value = false;

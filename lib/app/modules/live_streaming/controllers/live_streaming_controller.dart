@@ -8,6 +8,7 @@ import '../../../data/services/auth_service.dart';
 import '../../../data/services/streaming_service.dart';
 import '../../../data/services/social_service.dart';
 import '../../../routes/app_pages.dart';
+import '../../../core/utils/snackbar_helper.dart';
 import '../views/stream_review_dialog.dart';
 
 class LiveStreamingController extends GetxController {
@@ -138,8 +139,7 @@ class LiveStreamingController extends GetxController {
         success = await _socialService.unfollowUser(hostId);
         if (success) {
           isFollowing.value = false;
-          Get.snackbar("Social", "Unfollowed successfully", 
-            backgroundColor: Colors.white24, colorText: Colors.white, snackPosition: SnackPosition.TOP);
+          SnackbarHelper.showNotice("Social", "Unfollowed successfully");
         } else {
           print("Unfollow failed");
           // Re-check status from server to sync state
@@ -150,8 +150,7 @@ class LiveStreamingController extends GetxController {
         success = await _socialService.followUser(hostId);
         if (success) {
           isFollowing.value = true;
-          Get.snackbar("Social", "Following successfully", 
-            backgroundColor: Colors.white24, colorText: Colors.white, snackPosition: SnackPosition.TOP);
+          SnackbarHelper.showSuccess("Social", "Following successfully");
         } else {
           print("Follow failed");
           // Re-check status from server to sync state
@@ -160,7 +159,7 @@ class LiveStreamingController extends GetxController {
       }
     } catch (e) {
       print("Follow Toggle Exception: $e");
-      Get.snackbar("Error", "Action failed: $e");
+      SnackbarHelper.showError("Error", "Action failed: $e");
     }
   }
 
@@ -199,16 +198,13 @@ class LiveStreamingController extends GetxController {
 
       if (response != null && response['message'] == "Payment successful" || response['message'] == "Already paid") {
         hasPaid.value = true;
-        Get.snackbar("Success", "Stream unlocked successfully!", 
-          backgroundColor: Colors.green, colorText: Colors.white);
+        SnackbarHelper.showSuccess("Success", "Stream unlocked successfully!");
       } else {
-        Get.snackbar("Error", "Payment failed. Please try again.",
-          backgroundColor: Colors.red, colorText: Colors.white);
+        SnackbarHelper.showError("Error", "Payment failed. Please try again.");
       }
     } catch (e) {
       Get.back();
-      Get.snackbar("Error", "Insufficient coins or payment failed.",
-        backgroundColor: Colors.red, colorText: Colors.white);
+      SnackbarHelper.showError("Error", "Insufficient coins or payment failed.");
     }
   }
 
@@ -257,7 +253,7 @@ class LiveStreamingController extends GetxController {
     } catch (e) {
       print("Failed to connect: $e");
       errorMessage.value = "Failed to connect: $e";
-      Get.snackbar("Error", "Failed to connect to room: $e");
+      SnackbarHelper.showError("Error", "Failed to connect to room: $e");
     }
   }
 
@@ -326,13 +322,9 @@ class LiveStreamingController extends GetxController {
          } else if (type == 'like') {
            totalLikes.value += 1;
            if (payload['name'] != null) {
-              Get.snackbar(
+              SnackbarHelper.showNotice(
                 "Like!", 
                 "${payload['name']} liked the stream!",
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Colors.pinkAccent.withOpacity(0.7),
-                colorText: Colors.white,
-                duration: const Duration(seconds: 1),
               );
             }
          } else if (type == 'gift') {
@@ -343,12 +335,11 @@ class LiveStreamingController extends GetxController {
               'image': payload['profile_image'],
               'is_gift': true,
             });
-           Get.snackbar(
-             "Gift Received!", 
-             "${payload['sender_name']} sent ${payload['amount']} coins!",
-             backgroundColor: Colors.amber, colorText: Colors.black
-           );
-         }
+            SnackbarHelper.showNotice(
+              "Gift Received!", 
+              "${payload['sender_name']} sent ${payload['amount']} coins!",
+            );
+          }
        } catch (e) {
          print("Error parsing data message: $e");
        }
@@ -363,8 +354,7 @@ class LiveStreamingController extends GetxController {
     
     // Check payment status
     if (!isHost && isPremium.value && !hasPaid.value) {
-      Get.snackbar("Notice", "Unlock to chat", 
-        backgroundColor: Colors.amber, colorText: Colors.black);
+      SnackbarHelper.showNotice("Notice", "Unlock to chat");
       return;
     }
     
@@ -403,8 +393,7 @@ class LiveStreamingController extends GetxController {
   Future<void> sendLike() async {
     // Check payment status
     if (!isHost && isPremium.value && !hasPaid.value) {
-      Get.snackbar("Notice", "Please unlock the stream to like", 
-        backgroundColor: Colors.amber, colorText: Colors.black);
+      SnackbarHelper.showNotice("Notice", "Please unlock the stream to like");
       return;
     }
 
@@ -427,8 +416,7 @@ class LiveStreamingController extends GetxController {
   Future<void> sendGift(double amount) async {
     // Check payment status
     if (!isHost && isPremium.value && !hasPaid.value) {
-      Get.snackbar("Notice", "Please unlock the stream to send gifts", 
-        backgroundColor: Colors.amber, colorText: Colors.black);
+      SnackbarHelper.showNotice("Notice", "Please unlock the stream to send gifts");
       return;
     }
 
@@ -446,9 +434,9 @@ class LiveStreamingController extends GetxController {
       await _publishData(payload);
       
       Get.back(); // Close Gift Sheet
-      Get.snackbar("Success", "Gift sent successfully!");
+      SnackbarHelper.showSuccess("Success", "Gift sent successfully!");
     } catch (e) {
-      Get.snackbar("Error", "Failed to send gift: $e");
+      SnackbarHelper.showError("Error", "Failed to send gift: $e");
     }
   }
   Future<void> _publishData(String data) async {

@@ -4,6 +4,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../data/services/call_service.dart';
 import '../../../data/services/chat_socket_service.dart';
+import '../../../core/utils/snackbar_helper.dart';
 
 class CallController extends GetxController {
   final CallService _callService = CallService();
@@ -59,7 +60,7 @@ class CallController extends GetxController {
         // So caller already has token.
       } else if (payload['type'] == 'call_rejected' && payload['room_name'] == roomName.value) {
         Get.back();
-        Get.snackbar("Call Rejected", "${callerName.value} rejected the call");
+        SnackbarHelper.showNotice("Call Rejected", "${callerName.value} rejected the call");
       } else if (payload['type'] == 'call_ended' && payload['room_name'] == roomName.value) {
         _cleanup();
         Get.back();
@@ -81,7 +82,7 @@ class CallController extends GetxController {
       await _connectToRoom(token);
     } catch (e) {
       Get.back();
-      Get.snackbar("Error", "Failed to start call: $e");
+      SnackbarHelper.showError("Error", "Failed to start call: $e");
     }
   }
 
@@ -93,7 +94,7 @@ class CallController extends GetxController {
       await _connectToRoom(token);
     } catch (e) {
       Get.back();
-      Get.snackbar("Error", "Failed to accept call: $e");
+      SnackbarHelper.showError("Error", "Failed to accept call: $e");
     }
   }
 
@@ -141,7 +142,7 @@ class CallController extends GetxController {
       
     } catch (e) {
       print("Call Connection Error: $e");
-      Get.snackbar("Error", "Connection failed");
+      SnackbarHelper.showError("Error", "Connection failed");
     }
   }
 

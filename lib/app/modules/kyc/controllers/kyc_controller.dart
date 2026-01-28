@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../routes/app_pages.dart';
+import '../../../core/utils/snackbar_helper.dart';
 
 class KYCController extends GetxController {
   final AuthService _authService = AuthService.to;
@@ -38,7 +39,7 @@ class KYCController extends GetxController {
 
   Future<void> submitKYC() async {
     if (frontImagePath.isEmpty || backImagePath.isEmpty) {
-      Get.snackbar("Error", "Please upload both front and back images of your ID");
+      SnackbarHelper.showError("Error", "Please upload both front and back images of your ID");
       return;
     }
 
@@ -47,7 +48,7 @@ class KYCController extends GetxController {
       final result = await _authService.submitKYC(frontImagePath.value, backImagePath.value);
       if (result != null) {
         kycStatus.value = result['status'];
-        Get.snackbar("Success", "KYC submitted successfully. Please wait for verification.");
+        SnackbarHelper.showSuccess("Success", "KYC submitted successfully. Please wait for verification.");
         // Redirect to Withdrawal screen as requested
         Get.offNamed(Routes.WITHDRAW_TO); 
       }

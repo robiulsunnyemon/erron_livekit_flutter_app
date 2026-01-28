@@ -5,6 +5,7 @@ import '../../../data/services/finance_service.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../routes/app_pages.dart';
 import '../../profile/controllers/profile_controller.dart';
+import '../../../core/utils/snackbar_helper.dart';
 
 class FinanceController extends GetxController {
   final FinanceService _financeService = FinanceService.to;
@@ -58,7 +59,7 @@ class FinanceController extends GetxController {
 
   Future<void> addBeneficiary() async {
     if (accountHolderController.text.isEmpty || accountNumberController.text.isEmpty) {
-      Get.snackbar("Error", "Please fill all required fields");
+      SnackbarHelper.showError("Error", "Please fill all required fields");
       return;
     }
 
@@ -74,7 +75,7 @@ class FinanceController extends GetxController {
       if (result != null) {
         await fetchBeneficiaries();
         Get.back(); // Go back to selection screen
-        Get.snackbar("Success", "Account linked successfully");
+        SnackbarHelper.showSuccess("Success", "Account linked successfully");
       }
     } finally {
       isLoading.value = false;
@@ -89,12 +90,12 @@ class FinanceController extends GetxController {
   Future<void> submitWithdrawal() async {
     final amount = double.tryParse(withdrawAmountController.text) ?? 0;
     if (amount <= 0) {
-      Get.snackbar("Error", "Please enter a valid amount");
+      SnackbarHelper.showError("Error", "Please enter a valid amount");
       return;
     }
 
     if (selectedBeneficiary.value == null) {
-      Get.snackbar("Error", "Please select a payment method");
+      SnackbarHelper.showError("Error", "Please select a payment method");
       return;
     }
 

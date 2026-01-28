@@ -3,6 +3,7 @@ import '../../../data/services/streaming_service.dart';
 import 'package:flutter/material.dart';
 
 import '../../../routes/app_pages.dart';
+import '../../../core/utils/snackbar_helper.dart';
 
 class StartLiveController extends GetxController {
   final StreamingService _streamingService = StreamingService();
@@ -33,7 +34,7 @@ class StartLiveController extends GetxController {
   Future<void> startLive() async {
     final title = titleController.text.trim();
     if (title.isEmpty) {
-      Get.snackbar("Error", "Please enter a stream title");
+      SnackbarHelper.showError("Error", "Please enter a stream title");
       return;
     }
 
@@ -61,7 +62,7 @@ class StartLiveController extends GetxController {
       });
 
     } catch (e) {
-      Get.snackbar("Error", "Failed to start live: $e");
+      SnackbarHelper.showError("Error", "Failed to start live: $e");
     } finally {
       isLoading.value = false;
     }

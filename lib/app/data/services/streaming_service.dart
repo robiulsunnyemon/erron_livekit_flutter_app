@@ -112,15 +112,17 @@ class StreamingService {
   }
 
   Future<Map<String, dynamic>> sendGift(String sessionId, double amount) async {
-    final url = Uri.parse("$_baseUrl/streaming/gifts/send");
+    final url = Uri.parse("$_baseUrl/streaming/gifts/send?amount=$amount&session_id=$sessionId");
     final token = AuthService.to.token;
     if (token == null) throw Exception("Authentication Required");
 
     try {
       final response = await http.post(
           url,
-          headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
-          body: jsonEncode({'session_id': sessionId, 'amount': amount})
+          headers: {
+            'Authorization': 'Bearer $token',
+            'accept': 'application/json'
+          },
       );
       if (response.statusCode == 200) {
         return jsonDecode(response.body);

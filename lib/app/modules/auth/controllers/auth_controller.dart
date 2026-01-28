@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../routes/app_pages.dart';
+import '../../../core/utils/snackbar_helper.dart';
 
 class AuthController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
@@ -31,7 +32,7 @@ class AuthController extends GetxController {
   // Login
   Future<void> login() async {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      Get.snackbar("Error", "Please fill all fields");
+      SnackbarHelper.showError("Error", "Please fill all fields");
       return;
     }
     
@@ -53,12 +54,12 @@ class AuthController extends GetxController {
         passwordController.text.isEmpty || 
         firstNameController.text.isEmpty ||
         lastNameController.text.isEmpty) {
-      Get.snackbar("Error", "Please fill all fields");
+      SnackbarHelper.showError("Error", "Please fill all fields");
       return;
     }
     
     if (passwordController.text != confirmPasswordController.text) {
-      Get.snackbar("Error", "Passwords do not match");
+      SnackbarHelper.showError("Error", "Passwords do not match");
       return;
     }
 
@@ -84,7 +85,7 @@ class AuthController extends GetxController {
   Future<void> verifyOtp() async {
     final email = Get.arguments?['email'] ?? emailController.text.trim();
     if (email.isEmpty || otpController.text.isEmpty) {
-      Get.snackbar("Error", "Please enter OTP");
+      SnackbarHelper.showError("Error", "Please enter OTP");
       return;
     }
 
@@ -104,19 +105,18 @@ class AuthController extends GetxController {
   Future<void> resendOtp() async {
     final email = Get.arguments?['email'] ?? emailController.text.trim();
     if (email.isEmpty) {
-       Get.snackbar("Error", "Email not found");
+       SnackbarHelper.showError("Error", "Email not found");
        return;
     }
-    isLoading.value = true;
     await _authService.resendOtp(email);
     isLoading.value = false;
-    Get.snackbar("Success", "OTP Resent");
+    SnackbarHelper.showSuccess("Success", "OTP Resent");
   }
 
   // Forgot Password
   Future<void> forgotPassword() async {
     if (emailController.text.isEmpty) {
-      Get.snackbar("Error", "Please enter your email");
+      SnackbarHelper.showError("Error", "Please enter your email");
       return;
     }
 
@@ -157,12 +157,12 @@ class AuthController extends GetxController {
   Future<void> resetPassword() async {
     final email = Get.arguments?['email'];
     if (email == null) {
-      Get.snackbar("Error", "Session error, please try again");
+      SnackbarHelper.showError("Error", "Session error, please try again");
       return;
     }
     
     if (newPasswordController.text.isEmpty || newPasswordController.text != confirmNewPasswordController.text) {
-       Get.snackbar("Error", "Passwords do not match or empty");
+       SnackbarHelper.showError("Error", "Passwords do not match or empty");
        return;
     }
 
@@ -174,7 +174,7 @@ class AuthController extends GetxController {
       FocusManager.instance.primaryFocus?.unfocus();
       Future.delayed(Duration.zero, () {
         Get.offAllNamed(Routes.LOGIN);
-        Get.snackbar("Success", "Password reset successfully");
+        SnackbarHelper.showSuccess("Success", "Password reset successfully");
       });
     }
   }
