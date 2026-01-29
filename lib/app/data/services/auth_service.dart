@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import '../../core/utils/snackbar_helper.dart';
@@ -12,6 +13,9 @@ class AuthService extends GetxService {
   
   final _box = GetStorage();
   final _tokenKey = 'access_token';
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email'],
+  );
   
   // Base URL
   static const String baseUrl = 'https://erronliveapp.instalive.cloud/api/v1';
@@ -57,6 +61,42 @@ class AuthService extends GetxService {
       }
     } catch (e) {
       SnackbarHelper.showError("Error", "Something went wrong: $e");
+      return false;
+    }
+  }
+
+  Future<bool> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        // User canceled the sign-in
+        return false;
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final String? accessToken = googleAuth.accessToken;
+
+      if (accessToken == null) {
+        SnackbarHelper.showError("Error", "Failed to get Google access token");
+        return false;
+      }
+
+      // Send token to backend
+      final uri = Uri.parse('$baseUrl/auth/google-login?access_token=$accessToken');
+      final response = await http.post(uri);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        final token = data['access_token'];
+        await _box.write(_tokenKey, token);
+        return true;
+      } else {
+        SnackbarHelper.showError("Google Login Failed", response.body);
+        return false;
+      }
+    } catch (e) {
+      print("Google Sign-In Error: $e");
+      SnackbarHelper.showError("Error", "Google Sign-In failed: $e");
       return false;
     }
   }

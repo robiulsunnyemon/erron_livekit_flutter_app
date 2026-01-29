@@ -129,7 +129,7 @@ class LoginView extends GetView<AuthController> {
               SizedBox(
                 height: 56,
                 child: OutlinedButton(
-                  onPressed: () {}, 
+                  onPressed: controller.isLoading.value ? null : controller.googleLogin, 
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: Colors.grey.shade700),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),

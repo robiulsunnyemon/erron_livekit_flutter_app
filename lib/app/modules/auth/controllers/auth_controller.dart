@@ -48,6 +48,20 @@ class AuthController extends GetxController {
     }
   }
 
+  // Google Login
+  Future<void> googleLogin() async {
+    isLoading.value = true;
+    final success = await _authService.signInWithGoogle();
+    isLoading.value = false;
+    
+    if (success) {
+      FocusManager.instance.primaryFocus?.unfocus();
+      Future.delayed(Duration.zero, () {
+        Get.offAllNamed(Routes.DASHBOARD);
+      });
+    }
+  }
+
   // Register
   Future<void> register() async {
     if (emailController.text.isEmpty || 
