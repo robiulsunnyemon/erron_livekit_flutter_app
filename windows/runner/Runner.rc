@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "erron_live_app" "\0"
+            VALUE "FileDescription", "InstaLive" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "erron_live_app" "\0"
+            VALUE "InternalName", "InstaLive" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "erron_live_app.exe" "\0"
-            VALUE "ProductName", "erron_live_app" "\0"
+            VALUE "OriginalFilename", "InstaLive.exe" "\0"
+            VALUE "ProductName", "InstaLive" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

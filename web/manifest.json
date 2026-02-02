@@ -1,6 +1,6 @@
 {
-    "name": "erron_live_app",
-    "short_name": "erron_live_app",
+    "name": "InstaLive",
+    "short_name": "InstaLive",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

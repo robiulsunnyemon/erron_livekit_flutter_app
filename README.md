@@ -1,4 +1,4 @@
-# erron_live_app
+# InstaLive
 
 A new Flutter project.
 
