@@ -28,8 +28,8 @@ Future<void> main() async {
       debugShowCheckedModeBanner: false,
       initialRoute: AppPages.INITIAL,
       getPages: AppPages.routes,
-      defaultTransition: Transition.cupertino,
-      transitionDuration: const Duration(milliseconds: 400),
+      defaultTransition: Transition.native,
+      transitionDuration: const Duration(milliseconds: 500),
       theme: ThemeData(
         progressIndicatorTheme: ProgressIndicatorThemeData(
           color:  AppColors.secondaryPrimary,

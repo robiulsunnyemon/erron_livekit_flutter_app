@@ -54,6 +54,7 @@ class AppPages {
       name: _Paths.HOME,
       page: () => const HomeView(),
       binding: HomeBinding(),
+      transition: Transition.fade,
     ),
     GetPage(
       name: _Paths.START_LIVE,
@@ -69,6 +70,7 @@ class AppPages {
       name: _Paths.LOGIN,
       page: () => const LoginView(),
       binding: AuthBinding(),
+      transition: Transition.fade,
     ),
     GetPage(
       name: _Paths.PROFILE,
@@ -94,11 +96,13 @@ class AppPages {
       name: _Paths.REGISTER,
       page: () => const RegisterView(),
       binding: AuthBinding(),
+      transition: Transition.fade,
     ),
     GetPage(
       name: _Paths.OTP,
       page: () => const OtpView(),
       binding: AuthBinding(),
+      transition: Transition.fade,
     ),
     GetPage(
       name: _Paths.FORGOT_PASSWORD,
@@ -119,6 +123,7 @@ class AppPages {
       name: _Paths.DASHBOARD,
       page: () => const DashboardView(),
       binding: DashboardBinding(),
+      transition: Transition.fade,
     ),
     GetPage(
       name: _Paths.NOTIFICATION,
@@ -163,6 +168,7 @@ class AppPages {
       name: _Paths.WELCOME,
       page: () => const WelcomeView(),
       binding: WelcomeBinding(),
+      transition: Transition.fade,
     ),
     GetPage(
       name: _Paths.PUBLIC_PROFILE,
