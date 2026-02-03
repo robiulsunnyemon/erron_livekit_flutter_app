@@ -76,10 +76,15 @@ class LiveStreamingView extends GetView<LiveStreamingController> {
 
               return Obx(() {
                  bool isGuest = !AuthService.to.isLoggedIn;
-                 bool shouldBlur = (controller.isPremium.value && 
-                                   !controller.hasPaid.value && 
-                                   !controller.isPreviewMode.value && 
-                                   !controller.isHost) || isGuest;
+                 
+                 // Access observables first to ensure GetX tracks them
+                 final isPremium = controller.isPremium.value;
+                 final hasPaid = controller.hasPaid.value;
+                 final isPreview = controller.isPreviewMode.value;
+
+                 bool shouldBlur = !controller.isHost && 
+                                   !isPreview && 
+                                   (isGuest || (isPremium && !hasPaid));
                                   
                  return ImageFiltered(
                    imageFilter: ImageFilter.blur(
@@ -292,10 +297,10 @@ class LiveStreamingView extends GetView<LiveStreamingController> {
                                       child: const Icon(Icons.bolt, color: Colors.purpleAccent, size: 24),
                                     ),
                                     const SizedBox(width: 15),
-                                    Text(
-                                      "${controller.entryFee.value.toInt()}",
-                                      style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                                    ),
+                                      Text(
+                                        "${controller.entryFee.value}",
+                                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                      ),
                                   ],
                                 ),
                               ),
@@ -475,46 +480,49 @@ class LiveStreamingView extends GetView<LiveStreamingController> {
                     const SizedBox(height: 16),
                   ] else ...[
                     // 4. Guest Specific Area (Sign-in Prompt)
-                    const SizedBox(height: 20),
-                    Center(
-                      child: Column(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.black54,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.white24),
-                            ),
-                            child: const Text(
-                              "Sign in to join the chat",
-                              style: TextStyle(color: Colors.white, fontSize: 14),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            width: 200,
-                            height: 48,
-                            child: ElevatedButton(
-                              onPressed: () => Get.toNamed(Routes.LOGIN),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.secondaryPrimary,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                    Obx(() {
+                      if (controller.isPreviewMode.value) return const SizedBox(height: 100);
+                      
+                      return Center(
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.white24),
                               ),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text("Sign in to Chat", style: TextStyle(fontWeight: FontWeight.bold)),
-                                  SizedBox(width: 8),
-                                  Icon(Icons.send, size: 18),
-                                ],
+                              child: const Text(
+                                "Sign in to join the chat",
+                                style: TextStyle(color: Colors.white, fontSize: 14),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: 200,
+                              height: 48,
+                              child: ElevatedButton(
+                                onPressed: () => Get.toNamed(Routes.LOGIN),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.secondaryPrimary,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text("Sign in to Chat", style: TextStyle(fontWeight: FontWeight.bold)),
+                                    SizedBox(width: 8),
+                                    Icon(Icons.send, size: 18),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
                     const SizedBox(height: 32),
                   ],
                 ],
@@ -560,7 +568,7 @@ class LiveStreamingView extends GetView<LiveStreamingController> {
     );
   }
 
-  Widget _buildGiftItem(String name, String icon, double price) {
+  Widget _buildGiftItem(String name, String icon, int price) {
     return InkWell(
       onTap: () => controller.sendGift(price),
       child: Container(

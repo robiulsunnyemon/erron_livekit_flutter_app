@@ -16,7 +16,7 @@ class LiveStreamingController extends GetxController {
   final SocialService _socialService = SocialService();
   
   Room? room;
-  late final EventsListener<RoomEvent> listener;
+  EventsListener<RoomEvent>? listener;
   
   final isConnected = false.obs;
   final errorMessage = "".obs;
@@ -42,7 +42,7 @@ class LiveStreamingController extends GetxController {
   final hasPaid = false.obs;
   final isPreviewMode = false.obs;
   final countdown = 3.obs;
-  final entryFee = 0.0.obs;
+  final entryFee = 0.obs;
   
   // TODO: Replace with your actual LiveKit Server URL
   final String _liveKitUrl = "wss://liveworld-l78cuzu0.livekit.cloud";
@@ -63,13 +63,17 @@ class LiveStreamingController extends GetxController {
   final hostProfileImage = "".obs;
   String streamTitle = "";
   String streamCategory = "";
+  
+  bool _isExiting = false;
+  bool _isReconnecting = false;
+  bool _isExitHandled = false;
 
   @override
   void onInit() {
     super.onInit();
     final args = Get.arguments;
+    debugPrint("LiveStreaming: onInit with args: $args");
     if (args != null) {
-      print("LiveStreaming Args: $args");
       token = (args['token'] ?? "").toString().trim();
       roomName = args['room_name'] ?? "";
       isHost = args['is_host'] ?? false;
@@ -82,10 +86,12 @@ class LiveStreamingController extends GetxController {
       
       isPremium.value = args['is_premium'] ?? false;
       hasPaid.value = args['has_paid'] ?? false;
-      entryFee.value = (args['entry_fee'] ?? 0).toDouble();
+      entryFee.value = (args['entry_fee'] ?? 0).toInt();
       
       hostShady.value = (args['host_shady'] ?? 0).toDouble();
       hostLegit.value = 100.0 - hostShady.value;
+      
+      debugPrint("LiveStreaming Initialized: isHost=$isHost, isPremium=${isPremium.value}, hasPaid=${hasPaid.value}");
     }
     connect();
     _fetchCurrentUser();
@@ -95,10 +101,12 @@ class LiveStreamingController extends GetxController {
 
   void _fetchCurrentUser() async {
     if (!AuthService.to.isLoggedIn) return;
+    debugPrint("LiveStreaming: Fetching current user profile...");
     try {
       final user = await AuthService.to.getMyProfile();
       if (user != null) {
         currentUser.value = user;
+        debugPrint("LiveStreaming: Profile fetched for ${user.fullName}");
         if (isHost) {
           hostFullName.value = user.fullName;
           hostProfileImage.value = user.profileImage ?? "";
@@ -107,64 +115,70 @@ class LiveStreamingController extends GetxController {
         }
       }
     } catch (e) {
-      print("Error fetching profile: $e");
+      debugPrint("LiveStreaming Error fetching profile: $e");
     }
   }
 
   Future<void> _checkFollowStatus() async {
     if (isHost || hostId.isEmpty) {
-      print("Skip follow check: isHost=$isHost, hostId=$hostId");
+      debugPrint("LiveStreaming: Skipping follow check (Host or HostId empty)");
       return;
     }
     
     try {
-      print("Checking follow status for host: $hostId");
+      debugPrint("LiveStreaming: Checking follow status for host: $hostId");
       isFollowing.value = await _socialService.isFollowing(hostId);
-      print("Follow status: ${isFollowing.value}");
+      debugPrint("LiveStreaming: Follow status: ${isFollowing.value}");
     } catch (e) {
-      print("Error checking follow status: $e");
+      debugPrint("LiveStreaming Error checking follow status: $e");
     }
   }
 
   Future<void> toggleFollow() async {
     if (hostId.isEmpty) {
-      print("Cannot toggle follow: hostId is empty");
+      debugPrint("LiveStreaming Error: Cannot toggle follow, hostId is empty");
       return;
     }
     
     try {
+      debugPrint("LiveStreaming Action: Toggling Follow. Current: ${isFollowing.value}");
       bool success;
       if (isFollowing.value) {
-        print("Attempting to Unfollow: $hostId");
         success = await _socialService.unfollowUser(hostId);
         if (success) {
           isFollowing.value = false;
+          debugPrint("LiveStreaming: Unfollowed successfully");
           SnackbarHelper.showNotice("Social", "Unfollowed successfully");
         } else {
-          print("Unfollow failed");
-          // Re-check status from server to sync state
+          debugPrint("LiveStreaming Error: Unfollow failed");
           isFollowing.value = await _socialService.isFollowing(hostId);
         }
       } else {
-        print("Attempting to Follow: $hostId");
         success = await _socialService.followUser(hostId);
         if (success) {
           isFollowing.value = true;
+          debugPrint("LiveStreaming: Followed successfully");
           SnackbarHelper.showSuccess("Social", "Following successfully");
         } else {
-          print("Follow failed");
-          // Re-check status from server to sync state
+          debugPrint("LiveStreaming Error: Follow failed");
           isFollowing.value = await _socialService.isFollowing(hostId);
         }
       }
     } catch (e) {
-      print("Follow Toggle Exception: $e");
+      debugPrint("LiveStreaming Toggle Follow Exception: $e");
       SnackbarHelper.showError("Error", "Action failed: $e");
     }
   }
 
   void _startPreviewTimer() {
-    if (isHost || !isPremium.value || hasPaid.value) {
+    bool isGuest = !AuthService.to.isLoggedIn;
+    
+    // Guests get preview on ANY stream (free or premium)
+    // Registered users get preview only on PREMIUM streams they haven't paid for
+    bool needsPreview = isGuest || (!isHost && isPremium.value && !hasPaid.value);
+
+    if (isHost || !needsPreview) {
+      debugPrint("LiveStreaming: Skipping preview timer");
       isPreviewMode.value = false;
       return;
     }
@@ -172,17 +186,18 @@ class LiveStreamingController extends GetxController {
     isPreviewMode.value = true;
     countdown.value = 3;
     
-    debugPrint("Starting 3s preview timer...");
+    debugPrint("LiveStreaming: Starting 3s preview timer for ${isGuest ? 'Guest' : 'User'}...");
     
     Future.doWhile(() async {
       await Future.delayed(const Duration(seconds: 1));
       if (countdown.value > 1) {
         countdown.value--;
+        debugPrint("LiveStreaming: Preview Countdown: ${countdown.value}");
         return true;
       } else {
         countdown.value = 0;
         isPreviewMode.value = false;
-        debugPrint("Preview ended. Applying blur.");
+        debugPrint("LiveStreaming: Preview ended. Content is now locked.");
         return false;
       }
     });
@@ -196,45 +211,95 @@ class LiveStreamingController extends GetxController {
       final response = await _streamingService.payStreamFee(sessionId);
       Get.back(); // Close loading
 
-      if (response != null && response['message'] == "Payment successful" || response['message'] == "Already paid") {
+      if (response != null && (response['message'] == "Payment successful" || response['message'] == "Already paid")) {
+        debugPrint("LiveStreaming: Payment Successful. Message: ${response['message']}");
         hasPaid.value = true;
+        
+        // Update token and reconnect if provided (required for LiveKit subscription permissions)
+        if (response['livekit_token'] != null) {
+          debugPrint("LiveStreaming: Received NEW token. Forcing reconnection for subscription permissions...");
+          token = response['livekit_token'];
+          
+          _isReconnecting = true; // Set flag to prevent exit dialog
+          
+          // Disconnect and DISPOSE current room properly to kill old listeners
+          debugPrint("LiveStreaming: Disposing current session for re-auth...");
+          if (room != null) {
+            await room!.disconnect();
+            await room!.dispose();
+            room = null;
+            listener = null;
+          }
+          
+          isConnected.value = false;
+          remoteVideoTracks.clear();
+          
+          // Small delay to ensure event loop clears old disconnect events
+          await Future.delayed(const Duration(milliseconds: 300));
+          
+          // Reconnect with new token
+          debugPrint("LiveStreaming: Reconnecting with elevated permissions...");
+          await connect();
+          
+          // Keep flag true for a bit longer to catch late events
+          await Future.delayed(const Duration(milliseconds: 500));
+          _isReconnecting = false;
+        }
+        
         SnackbarHelper.showSuccess("Success", "Stream unlocked successfully!");
       } else {
         SnackbarHelper.showError("Error", "Payment failed. Please try again.");
       }
     } catch (e) {
       Get.back();
+      _isReconnecting = false;
+      debugPrint("LiveStreaming: Payment Error: $e");
       SnackbarHelper.showError("Error", "Insufficient coins or payment failed.");
     }
   }
 
 
   Future<void> connect() async {
+    debugPrint("LiveStreaming: Requesting permissions...");
     await [Permission.camera, Permission.microphone].request();
 
     try {
-      room = Room();
+      debugPrint("LiveStreaming: Initializing Room and Listeners...");
+      
+      // Safety: Ensure old room is gone
+      if (room != null) {
+        await room!.disconnect();
+        await room!.dispose();
+      }
+
+      room = Room(
+        roomOptions: const RoomOptions(
+          adaptiveStream: true,
+          dynacast: true,
+        )
+      );
       listener = room!.createListener();
       
       // 1. Set up listeners BEFORE connecting
       _setUpListeners();
 
       if (token.isEmpty) {
+        debugPrint("LiveStreaming Error: Token is EMPTY");
         throw Exception("LiveKit Token is empty");
       }
 
-      print("Connecting to LiveKit: $_liveKitUrl");
+      debugPrint("LiveStreaming: Connecting to $_liveKitUrl with token: ${token.substring(0, 10)}...");
       await room!.connect(_liveKitUrl, token);
-      print("Connected to room: ${room!.name}");
+      debugPrint("LiveStreaming: Connected successfully to ${room!.name}");
       
       isConnected.value = true;
 
       // 2. Check for tracks already in the room (just in case they were subscribed during connect)
       for (var participant in room!.remoteParticipants.values) {
-        print("Checking participant: ${participant.identity}");
+        debugPrint("LiveStreaming: Checking participant: ${participant.identity}");
         for (var trackPub in participant.videoTrackPublications) {
           if (trackPub.subscribed && trackPub.track is VideoTrack) {
-            print("Found existing track from ${participant.identity}");
+            debugPrint("LiveStreaming: Found existing track from ${participant.identity}");
             if (!remoteVideoTracks.contains(trackPub.track)) {
               remoteVideoTracks.add(trackPub.track as VideoTrack);
             }
@@ -243,7 +308,7 @@ class LiveStreamingController extends GetxController {
       }
 
       if (isHost) {
-        print("Publishing host tracks...");
+        debugPrint("LiveStreaming: Publishing host tracks...");
         var localVideo = await LocalVideoTrack.createCameraTrack();
         await room!.localParticipant?.publishVideoTrack(localVideo);
         localVideoTrack.value = localVideo;
@@ -251,66 +316,57 @@ class LiveStreamingController extends GetxController {
         await room!.localParticipant?.setMicrophoneEnabled(true);
       }
     } catch (e) {
-      print("Failed to connect: $e");
+      debugPrint("LiveStreaming Error: Failed to connect: $e");
       errorMessage.value = "Failed to connect: $e";
       SnackbarHelper.showError("Error", "Failed to connect to room: $e");
     }
   }
 
   void _setUpListeners() {
-    print("Setting up LiveKit listeners...");
-    listener.on<TrackSubscribedEvent>((event) {
-       print("Track Subscribed: ${event.track.sid} from ${event.participant.identity}");
+    debugPrint("LiveStreaming: Setting up LiveKit listeners...");
+    listener?.on<TrackSubscribedEvent>((event) {
+       debugPrint("LiveStreaming Event: Track Subscribed: ${event.track.sid} from ${event.participant.identity} (Type: ${event.track.kind})");
        if (event.track is VideoTrack) {
          if (!remoteVideoTracks.contains(event.track)) {
-           print("Adding remote video track from ${event.participant.identity}");
+           debugPrint("LiveStreaming: Adding remote video track to UI list.");
            remoteVideoTracks.add(event.track as VideoTrack);
          }
        }
     });
 
-    listener.on<TrackUnsubscribedEvent>((event) {
-      print("Track Unsubscribed: ${event.track.sid}");
+    listener?.on<TrackUnsubscribedEvent>((event) {
+      debugPrint("LiveStreaming Event: Track Unsubscribed: ${event.track.sid}");
       if (event.track is VideoTrack) {
         remoteVideoTracks.remove(event.track);
       }
     });
 
-    listener.on<ParticipantConnectedEvent>((event) {
-      print("Participant Connected: ${event.participant.identity}");
+    listener?.on<ParticipantConnectedEvent>((event) {
+      debugPrint("LiveStreaming Event: Participant Connected: ${event.participant.identity}");
     });
 
-    listener.on<ParticipantDisconnectedEvent>((event) {
-      print("Participant Disconnected: ${event.participant.identity}");
+    listener?.on<ParticipantDisconnectedEvent>((event) {
+      debugPrint("LiveStreaming Event: Participant Disconnected: ${event.participant.identity}");
     });
 
     // Listen for room disconnection (e.g., host ends stream)
-    listener.on<RoomDisconnectedEvent>((event) {
-      print("Room Disconnected: ${event.reason}");
-      if (!isHost && sessionId.isNotEmpty) {
-          // If it's a premium stream and hasn't been paid for, skip the review dialog
-          if (isPremium.value && !hasPaid.value) {
-             Get.back();
-             return;
-          }
-
-          Get.bottomSheet(
-            StreamReviewDialog(controller: this),
-            isScrollControlled: true,
-            barrierColor: Colors.black54,
-          );
+    listener?.on<RoomDisconnectedEvent>((event) {
+      debugPrint("LiveStreaming Event: Room Disconnected. Reason: ${event.reason}");
+      if (!_isReconnecting) {
+        _handleExitScenario();
       } else {
-        Get.back();
+        debugPrint("LiveStreaming: Ignoring disconnect event (Reason: Reconnecting for Auth)");
       }
     });
 
     // Listen for Data Messages (Chat, Likes, Gifts)
-    listener.on<DataReceivedEvent>((event) {
+    listener?.on<DataReceivedEvent>((event) {
        try {
          final String data = utf8.decode(event.data);
          final Map<String, dynamic> payload = jsonDecode(data);
          
          final type = payload['type'];
+         debugPrint("LiveStreaming: Data Received Type: $type");
          
          if (type == 'comment') {
            comments.add({
@@ -341,7 +397,7 @@ class LiveStreamingController extends GetxController {
             );
           }
        } catch (e) {
-         print("Error parsing data message: $e");
+         debugPrint("LiveStreaming Error parsing data message: $e");
        }
     });
   }
@@ -350,6 +406,7 @@ class LiveStreamingController extends GetxController {
 
   Future<void> sendComment() async {
     final text = commentController.text.trim();
+    debugPrint("LiveStreaming Action: Sending Comment: $text");
     if (text.isEmpty) return;
     
     // Check payment status
@@ -364,7 +421,7 @@ class LiveStreamingController extends GetxController {
         try {
             await _streamingService.sendComment(sessionId, text);
         } catch(e) {
-            print("API Comment Error: $e");
+            debugPrint("LiveStreaming Error: API Comment Error: $e");
             // Optional: Continue to show locally even if API fails? Better to fail.
         }
     }
@@ -391,6 +448,7 @@ class LiveStreamingController extends GetxController {
   }
 
   Future<void> sendLike() async {
+    debugPrint("LiveStreaming Action: Sending Like...");
     // Check payment status
     if (!isHost && isPremium.value && !hasPaid.value) {
       SnackbarHelper.showNotice("Notice", "Please unlock the stream to like");
@@ -401,7 +459,7 @@ class LiveStreamingController extends GetxController {
        try {
           await _streamingService.sendLike(sessionId);
        } catch(e){
-         print("API Like Error: $e");
+         debugPrint("LiveStreaming Error: API Like Error: $e");
        }
     }
     
@@ -413,7 +471,8 @@ class LiveStreamingController extends GetxController {
     totalLikes.value += 1;
   }
 
-  Future<void> sendGift(double amount) async {
+  Future<void> sendGift(int amount) async {
+    debugPrint("LiveStreaming Action: Sending Gift: $amount coins...");
     // Check payment status
     if (!isHost && isPremium.value && !hasPaid.value) {
       SnackbarHelper.showNotice("Notice", "Please unlock the stream to send gifts");
@@ -440,22 +499,28 @@ class LiveStreamingController extends GetxController {
     }
   }
   Future<void> _publishData(String data) async {
-    if (room == null) return;
+    if (room == null) {
+      debugPrint("LiveStreaming Error: Cannot publish data, room is NULL");
+      return;
+    }
+    debugPrint("LiveStreaming: Publishing data to LiveKit: ${data.substring(0, data.length > 50 ? 50 : data.length)}...");
     final bytes = utf8.encode(data);
     await room!.localParticipant?.publishData(bytes);
   }
 
   Future<void> reportStream(String category, String description) async {
+    debugPrint("LiveStreaming Action: Reporting Stream. Category: $category");
     if (sessionId.isEmpty) return;
     try {
       await _streamingService.reportStream(sessionId, category, description: description);
     } catch (e) {
-      print("Report Error: $e");
+      debugPrint("LiveStreaming Error: Report Error: $e");
     }
   }
 
   @override
   void onClose() {
+    debugPrint("LiveStreaming: onClose. Disposing resources...");
     room?.disconnect();
     room?.dispose();
     commentController.dispose();
@@ -465,6 +530,7 @@ class LiveStreamingController extends GetxController {
   void toggleMic() async {
     if (room != null && room!.localParticipant != null) {
        bool isEnabled = room!.localParticipant!.isMicrophoneEnabled();
+       debugPrint("LiveStreaming Action: Toggling Mic. Current state: $isEnabled");
        await room!.localParticipant!.setMicrophoneEnabled(!isEnabled);
        isMicEnabled.value = !isEnabled;
     }
@@ -474,6 +540,7 @@ class LiveStreamingController extends GetxController {
     if (room != null && room!.localParticipant != null) {
        bool isCurrentlyEnabled = room!.localParticipant!.isCameraEnabled();
        bool shouldEnable = !isCurrentlyEnabled;
+       debugPrint("LiveStreaming Action: Toggling Camera. Should enable: $shouldEnable");
        
        await room!.localParticipant!.setCameraEnabled(shouldEnable);
        isCameraEnabled.value = shouldEnable;
@@ -500,44 +567,74 @@ class LiveStreamingController extends GetxController {
   }
   
   void leaveRoom() async {
+    if (_isExiting) return;
+    _isExiting = true;
+    
+    debugPrint("LiveStreaming Action: Leaving Room...");
     try {
       if (isHost && sessionId.isNotEmpty) {
-        // If host, notify backend to end the stream
+        debugPrint("LiveStreaming: Stopping stream on backend...");
         await _streamingService.stopStream(sessionId);
       }
 
       await room?.disconnect();
-      print("Disconnected from LiveKit room");
+      await room?.dispose();
+      room = null;
+      isConnected.value = false;
       
-      if (!AuthService.to.isLoggedIn) {
-        // If guest, go back to home dashboard immediately
-        Get.offAllNamed(Routes.DASHBOARD);
-        return;
-      }
-
-      if (!isHost && sessionId.isNotEmpty) {
-        // If it's a premium stream and hasn't been paid for, skip the review dialog
-        if (isPremium.value && !hasPaid.value) {
-           Get.back();
-           return;
-        }
-
-        // Show review dialog for viewers
-        Get.bottomSheet(
-          StreamReviewDialog(controller: this),
-          isScrollControlled: true,
-          barrierColor: Colors.black54,
-        );
-      } else {
-        Get.back();
-      }
+      debugPrint("LiveStreaming: Disconnected from LiveKit room");
+      _handleExitScenario();
     } catch (e) {
-      print("Error during leaveRoom: $e");
-      if (!AuthService.to.isLoggedIn) {
-        Get.offAllNamed(Routes.DASHBOARD);
-      } else {
+      isConnected.value = false;
+      debugPrint("LiveStreaming Error: during leaveRoom: $e");
+      _handleExitScenario();
+    }
+  }
+
+  void _handleExitScenario() {
+    // 1. If we are reconnecting (e.g. during payment), ignore everything
+    if (_isReconnecting) {
+      debugPrint("LiveStreaming: Ignoring exit scenario during reconnection");
+      return;
+    }
+
+    // 2. Prevent multiple calls to the exit UI
+    if (_isExitHandled) return;
+    _isExitHandled = true;
+
+    // 3. If it's the host or we don't have a session, just go back
+    if (isHost || sessionId.isEmpty) {
+      Get.back();
+      return;
+    }
+
+    // 4. Guests NEVER see the review dialog, go straight to Dashboard
+    if (!AuthService.to.isLoggedIn) {
+      Get.offAllNamed(Routes.DASHBOARD);
+      return;
+    }
+
+    // 5. SECURE GATING: If user is in Preview OR is looking at Blurred content (Premium Unpaid)
+    // NEVER show the review dialog.
+    bool hasAccess = !isPremium.value || hasPaid.value;
+    if (isPreviewMode.value || !hasAccess) {
+      debugPrint("LiveStreaming: Exiting without review (Preview/Locked content)");
+      Get.back();
+      return;
+    }
+
+    // 6. Registered users who have Paid OR are on Free streams
+    // Show review dialog and then pop the screen when it's closed
+    Get.bottomSheet(
+      StreamReviewDialog(controller: this),
+      isScrollControlled: true,
+      barrierColor: Colors.black54,
+    ).then((_) {
+      // Once the bottom sheet is closed (by user or programmatic back),
+      // we must pop the LiveStreamingView itself.
+      if (Get.currentRoute == Routes.LIVE_STREAMING || Get.currentRoute.contains('live-streaming')) {
         Get.back();
       }
-    }
+    });
   }
 }

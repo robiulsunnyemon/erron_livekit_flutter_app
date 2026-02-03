@@ -8,7 +8,7 @@ class StreamingService {
 
   Future<Map<String, dynamic>> startStream({
     bool isPremium = false, 
-    double entryFee = 0, 
+    int entryFee = 0, 
     String title = "", 
     String category = ""
   }) async {
@@ -111,7 +111,7 @@ class StreamingService {
     }
   }
 
-  Future<Map<String, dynamic>> sendGift(String sessionId, double amount) async {
+  Future<Map<String, dynamic>> sendGift(String sessionId, int amount) async {
     final url = Uri.parse("$_baseUrl/streaming/gifts/send?amount=$amount&session_id=$sessionId");
     final token = AuthService.to.token;
     if (token == null) throw Exception("Authentication Required");

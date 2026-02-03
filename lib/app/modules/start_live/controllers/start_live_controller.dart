@@ -40,7 +40,7 @@ class StartLiveController extends GetxController {
 
     try {
       isLoading.value = true;
-      double fee = double.tryParse(entryFeeController.text) ?? 0;
+      int fee = int.tryParse(entryFeeController.text) ?? 0;
       
       final result = await _streamingService.startStream(
         isPremium: isPremium.value,
@@ -48,6 +48,7 @@ class StartLiveController extends GetxController {
         title: title,
         category: selectedCategory.value,
       );
+      isLoading.value = false;
       
       Get.toNamed(Routes.LIVE_STREAMING, arguments: {
         "token": result['livekit_token'],
@@ -58,13 +59,12 @@ class StartLiveController extends GetxController {
         "category": selectedCategory.value,
         "is_premium": isPremium.value,
         "has_paid": true,
-        "entry_fee": result['entry_fee'] ?? 0.0,
+        "entry_fee": result['entry_fee'] ?? 0,
       });
 
     } catch (e) {
-      SnackbarHelper.showError("Error", "Failed to start live: $e");
-    } finally {
       isLoading.value = false;
+      SnackbarHelper.showError("Error", "Failed to start live: $e");
     }
   }
 }

@@ -30,8 +30,14 @@ class ChatSocketService {
       _channel!.stream.listen(
         (data) {
           final payload = jsonDecode(data);
+          
+          // Handle heartbeat Ping from backend
+          if (payload['type'] == 'ping') {
+            sendMessage({"type": "pong"});
+            return;
+          }
+
           // Handle Call Signals globally if needed, or pass to listeners
-          // For now, we broadcast everything, but we can intercept here.
           _messageController.add(payload);
 
           // We check for incoming call even when not in ChatView
@@ -47,6 +53,7 @@ class ChatSocketService {
         onDone: () {
           print("WebSocket Closed");
           _isConnected = false;
+          _reconnect(); // Added reconnection on done
         },
       );
     } catch (e) {
