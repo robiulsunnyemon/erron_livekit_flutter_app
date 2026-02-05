@@ -60,11 +60,13 @@ class AppPages {
       name: _Paths.START_LIVE,
       page: () => const StartLiveView(),
       binding: StartLiveBinding(),
+      transition: Transition.fade,
     ),
     GetPage(
       name: _Paths.LIVE_STREAMING,
       page: () => const LiveStreamingView(),
       binding: LiveStreamingBinding(),
+      transition: Transition.fade,
     ),
     GetPage(
       name: _Paths.LOGIN,

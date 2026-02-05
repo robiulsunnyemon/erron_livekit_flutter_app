@@ -27,7 +27,32 @@ class LiveStreamingView extends GetView<LiveStreamingController> {
                       child: Text(controller.errorMessage.value, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
                     ));
                 }
-                return const Center(child: CircularProgressIndicator());
+                
+                // Consistency fix: Show a blurred placeholder/background instead of a blank loader
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (controller.currentUser.value?.coverImage != null)
+                      Image.network(
+                        AuthService.getFullUrl(controller.currentUser.value!.coverImage!),
+                        fit: BoxFit.cover,
+                      ),
+                    BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(color: Colors.black.withOpacity(0.4)),
+                    ),
+                    const Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(color: Colors.white70),
+                          SizedBox(height: 16),
+                          Text("Connecting to stream...", style: TextStyle(color: Colors.white70)),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
               }
 
               // Logic: specific to Bigo-like apps. 

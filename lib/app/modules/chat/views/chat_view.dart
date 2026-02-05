@@ -43,7 +43,9 @@ class ChatView extends GetView<ChatController> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(controller.receiverName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                SizedBox(
+                  width: 80,
+                    child: Text(controller.receiverName,overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white))),
                 Row(
                   children: [
                     Obx(() => Container(width: 8, height: 8, decoration: BoxDecoration(color: controller.isOnline.value ? AppColors.success : Colors.grey, shape: BoxShape.circle))),
